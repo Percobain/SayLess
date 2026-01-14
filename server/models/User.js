@@ -12,17 +12,18 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  // Only store Privy wallet ID - wallet data comes from Privy API
+  // Wallets created via Privy REST API automatically appear in Privy Dashboard
+  privyWalletId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  // Wallet address cached for quick access (but fetched from Privy)
   wallet: {
     type: String,
     required: true
-  },
-  privateKey: {
-    type: String,
-    default: 'privy-managed'
-  },
-  privyUserId: {
-    type: String,
-    default: null
   },
   reputation: {
     type: Number,
@@ -32,6 +33,9 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+  // privateKey removed - Privy manages keys
+  // privyUserId removed - not using Privy users
+  // Note: Old MongoDB document with _id 696808c8842ef0bc7f9d81de has privateKey - can be ignored/migrated
 });
 
 module.exports = mongoose.model('User', userSchema);

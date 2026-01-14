@@ -4,7 +4,7 @@ const { ethers } = require('ethers');
 const User = require('../models/User');
 const Session = require('../models/Session');
 const { getReputation, getRewards, claimRewards, getWalletBalance } = require('./blockchain');
-const { createWallet, fundWalletWithEth } = require('./privy');
+const { createPrivyWallet, fundWalletWithEth } = require('./privy');
 const logger = require('../utils/logger');
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -37,27 +37,33 @@ const handleIncomingMessage = async (params) => {
     let user = await User.findOne({ whatsappHash });
     
     if (!user) {
-      logger.info(`[WhatsApp Handler] Creating new wallet for user`);
+      logger.info(`[WhatsApp Handler] Creating new Privy wallet for user`);
       
-      // Create new wallet
-      const { address, privateKey } = createWallet();
-      
-      user = await User.create({
-        whatsappHash,
-        odacityUserId: uuid(),
-        wallet: address,
-        privateKey: privateKey
-      });
-      
-      logger.info(`[WhatsApp Handler] Created wallet: ${address}`);
-      
-      // Fund wallet with 0.01 ETH
       try {
-        const fundTxHash = await fundWalletWithEth(address, '0.01');
-        logger.info(`[WhatsApp Handler] Funded wallet with 0.01 ETH, tx: ${fundTxHash}`);
-      } catch (fundError) {
-        logger.error(`[WhatsApp Handler] Could not fund wallet: ${fundError.message}`);
-        // Continue even if funding fails
+        // Create Privy embedded wallet
+        const privyWallet = await createPrivyWallet();
+        
+        user = await User.create({
+          whatsappHash,
+          odacityUserId: uuid(),
+          wallet: privyWallet.address,
+          privyWalletId: privyWallet.privyWalletId,
+          privateKey: 'privy-managed'
+        });
+        
+        logger.info(`[WhatsApp Handler] Created Privy wallet: ${privyWallet.address} (ID: ${privyWallet.privyWalletId})`);
+        
+        // Fund wallet with 0.01 ETH
+        try {
+          const fundTxHash = await fundWalletWithEth(privyWallet.address, '0.01');
+          logger.info(`[WhatsApp Handler] Funded wallet with 0.01 ETH, tx: ${fundTxHash}`);
+        } catch (fundError) {
+          logger.error(`[WhatsApp Handler] Could not fund wallet: ${fundError.message}`);
+          // Continue even if funding fails
+        }
+      } catch (privyError) {
+        logger.error(`[WhatsApp Handler] Privy wallet creation failed: ${privyError.message}`);
+        throw new Error('Failed to create wallet. Please try again.');
       }
     }
     
@@ -164,10 +170,18 @@ const handleIncomingMessage = async (params) => {
   else if (command === 'EXPORT') {
     const user = await User.findOne({ whatsappHash });
     if (user) {
-      return `🔑 Your Wallet Export\n\n` +
-             `Address: ${user.wallet}\n\n` +
-             `Private Key: ${user.privateKey}\n\n` +
-             `⚠️ Keep this safe! Anyone with this key controls your wallet.`;
+      if (user.privyWalletId) {
+        return `🔑 Your Privy Wallet\n\n` +
+               `Address: ${user.wallet}\n` +
+               `Privy Wallet ID: ${user.privyWalletId}\n\n` +
+               `Your wallet is managed by Privy. To export your private key, use the Privy dashboard or API.\n\n` +
+               `⚠️ Keep your wallet secure!`;
+      } else {
+        return `🔑 Your Wallet Export\n\n` +
+               `Address: ${user.wallet}\n\n` +
+               `Private Key: ${user.privateKey}\n\n` +
+               `⚠️ Keep this safe! Anyone with this key controls your wallet.`;
+      }
     } else {
       return 'No wallet found. Send REPORT first.';
     }
@@ -181,7 +195,7 @@ const handleIncomingMessage = async (params) => {
            `BALANCE - View wallet balance\n` +
            `REWARDS - View pending rewards\n` +
            `CLAIM - Claim your rewards\n` +
-           `EXPORT - Export wallet key\n` +
+           `EXPORT - Export wallet info\n` +
            `HELP - This message\n\n` +
            `Your reports are encrypted end-to-end.`;
   }
