@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Shield, Lock, Upload, CheckCircle, AlertCircle, ExternalLink, ArrowLeft } from 'lucide-react';
+import { Shield, Lock, Upload, CheckCircle, AlertCircle, ExternalLink, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { encryptWithNaCl, encryptFile } from '../lib/encryption';
 import { checkSession, submitReport } from '../lib/api';
@@ -80,10 +80,10 @@ export default function Report() {
   // Loading state
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-400">Validating session...</p>
+          <div className="w-8 h-8 border-2 border-[#D94A3A] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[#F0ECD9]/50 uppercase tracking-widest text-sm">Validating session...</p>
         </div>
       </div>
     );
@@ -92,14 +92,14 @@ export default function Report() {
   // Invalid session
   if (status === 'invalid') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-slate-900/50 border border-red-500/30 rounded-2xl p-8 text-center">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Invalid Session</h1>
-          <p className="text-slate-400 mb-6">{error || 'This session has expired or does not exist.'}</p>
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center animate-fade-in">
+          <AlertCircle className="w-16 h-16 text-[#D94A3A] mx-auto mb-6" />
+          <h1 className="text-3xl font-display font-bold text-[#F0ECD9] mb-4">Invalid Session</h1>
+          <p className="text-[#F0ECD9]/50 mb-10">{error || 'This session has expired or does not exist.'}</p>
           <Link to="/">
-            <Button variant="outline" className="border-slate-700">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            <Button variant="outline" className="group">
+              <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
               Go Home
             </Button>
           </Link>
@@ -111,41 +111,41 @@ export default function Report() {
   // Success state
   if (status === 'done') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
-        <div className="max-w-lg w-full bg-slate-900/50 border border-emerald-500/30 rounded-2xl p-8 text-center">
-          <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Report Submitted!</h1>
-          <p className="text-slate-400 mb-6">
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-6">
+        <div className="max-w-lg w-full text-center animate-fade-in">
+          <CheckCircle className="w-16 h-16 text-[#D94A3A] mx-auto mb-6" />
+          <h1 className="text-3xl font-display font-bold text-[#F0ECD9] mb-4">Report Submitted</h1>
+          <p className="text-[#F0ECD9]/50 mb-10">
             Your encrypted report has been stored on IPFS and verified on blockchain.
           </p>
           
-          <div className="bg-slate-800/50 rounded-xl p-4 text-left space-y-3 mb-6">
+          <div className="bg-[#F0ECD9]/5 p-6 text-left space-y-4 mb-10 border border-[#F0ECD9]/10">
             <div>
-              <p className="text-xs text-slate-500 uppercase">IPFS CID</p>
-              <p className="text-sm text-slate-300 font-mono break-all">{result.cid}</p>
+              <p className="text-xs text-[#F0ECD9]/40 uppercase tracking-widest mb-1">IPFS CID</p>
+              <p className="text-sm text-[#F0ECD9] font-mono break-all">{result.cid}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500 uppercase">Transaction Hash</p>
-              <p className="text-sm text-slate-300 font-mono break-all">{result.txHash}</p>
+              <p className="text-xs text-[#F0ECD9]/40 uppercase tracking-widest mb-1">Transaction Hash</p>
+              <p className="text-sm text-[#F0ECD9] font-mono break-all">{result.txHash}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500 uppercase">Report ID</p>
-              <p className="text-sm text-slate-300 font-mono">{result.reportId}</p>
+              <p className="text-xs text-[#F0ECD9]/40 uppercase tracking-widest mb-1">Report ID</p>
+              <p className="text-sm text-[#F0ECD9] font-mono">{result.reportId}</p>
             </div>
           </div>
           
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             <a 
               href={`https://sepolia.etherscan.io/tx/${result.txHash}`} 
               target="_blank" 
               rel="noopener noreferrer"
             >
-              <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+              <Button className="w-full group">
                 View on Etherscan
                 <ExternalLink className="w-4 h-4 ml-2" />
               </Button>
             </a>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#F0ECD9]/30">
               Send STATUS {sessionId} on WhatsApp to track your report.
             </p>
           </div>
@@ -156,27 +156,27 @@ export default function Report() {
 
   // Main form
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[#0A0A0A] py-16 px-6">
+      <div className="max-w-2xl mx-auto animate-fade-in">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 mb-4">
-            <Lock className="w-4 h-4 text-emerald-400" />
-            <span className="text-emerald-400 text-sm font-medium">End-to-End Encrypted</span>
+        <div className="mb-12">
+          <div className="inline-flex items-center gap-2 border-b border-[#F0ECD9]/20 pb-2 mb-8">
+            <Lock className="w-4 h-4 text-[#D94A3A]" />
+            <span className="text-[#F0ECD9]/60 text-sm uppercase tracking-widest">End-to-End Encrypted</span>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Anonymous Report</h1>
-          <p className="text-slate-400">Session: {sessionId}</p>
+          <h1 className="text-4xl md:text-5xl font-display font-bold text-[#F0ECD9] mb-3 tracking-tight">Anonymous Report</h1>
+          <p className="text-[#F0ECD9]/40 font-mono text-sm">Session: {sessionId}</p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-8">
+        {/* Form */}
+        <div className="space-y-8">
           {/* Security Notice */}
-          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 mb-6">
-            <div className="flex items-start gap-3">
-              <Shield className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+          <div className="bg-[#D94A3A]/5 border-l-2 border-[#D94A3A] p-5">
+            <div className="flex items-start gap-4">
+              <Shield className="w-5 h-5 text-[#D94A3A] flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm text-emerald-300 font-medium">Your report is encrypted in this browser</p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-sm text-[#F0ECD9] font-medium mb-1">Your report is encrypted in this browser</p>
+                <p className="text-xs text-[#F0ECD9]/40">
                   Content is encrypted before leaving your device. Only the designated authority can decrypt it.
                 </p>
               </div>
@@ -184,26 +184,26 @@ export default function Report() {
           </div>
 
           {/* Report Text */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+          <div>
+            <label className="block text-sm font-medium text-[#F0ECD9]/60 uppercase tracking-widest mb-3">
               Describe the incident
             </label>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Provide as much detail as possible about the incident..."
-              className="w-full h-48 bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+              className="w-full h-48 bg-[#F0ECD9]/5 border border-[#F0ECD9]/10 p-5 text-[#F0ECD9] placeholder-[#F0ECD9]/20 focus:outline-none focus:border-[#D94A3A] resize-none transition-colors"
               disabled={status === 'encrypting' || status === 'submitting'}
             />
           </div>
 
           {/* File Upload */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+          <div>
+            <label className="block text-sm font-medium text-[#F0ECD9]/60 uppercase tracking-widest mb-3">
               Evidence (optional)
             </label>
-            <div className="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-slate-600 transition-colors">
-              <Upload className="w-8 h-8 text-slate-500 mx-auto mb-2" />
+            <div className="border border-dashed border-[#F0ECD9]/20 p-8 text-center hover:border-[#F0ECD9]/40 transition-colors cursor-pointer">
+              <Upload className="w-6 h-6 text-[#F0ECD9]/30 mx-auto mb-3" />
               <input
                 type="file"
                 multiple
@@ -213,12 +213,12 @@ export default function Report() {
                 disabled={status === 'encrypting' || status === 'submitting'}
               />
               <label htmlFor="file-upload" className="cursor-pointer">
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-[#F0ECD9]/40">
                   Click to upload files or drag and drop
                 </span>
               </label>
               {files.length > 0 && (
-                <div className="mt-3 text-sm text-emerald-400">
+                <div className="mt-4 text-sm text-[#D94A3A]">
                   {files.length} file(s) selected
                 </div>
               )}
@@ -227,8 +227,8 @@ export default function Report() {
 
           {/* Error */}
           {error && status === 'error' && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
-              <p className="text-sm text-red-400">{error}</p>
+            <div className="bg-[#D94A3A]/10 border-l-2 border-[#D94A3A] p-4">
+              <p className="text-sm text-[#D94A3A]">{error}</p>
             </div>
           )}
 
@@ -236,30 +236,32 @@ export default function Report() {
           <Button
             onClick={handleSubmit}
             disabled={status === 'encrypting' || status === 'submitting' || !text.trim()}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-6 text-lg"
+            className="w-full py-6 text-base group"
+            size="lg"
           >
             {status === 'valid' && (
               <>
                 <Lock className="w-5 h-5 mr-2" />
                 Encrypt & Submit Report
+                <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
               </>
             )}
             {status === 'encrypting' && (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <div className="w-5 h-5 border-2 border-[#0A0A0A] border-t-transparent rounded-full animate-spin mr-2" />
                 Encrypting...
               </>
             )}
             {status === 'submitting' && (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <div className="w-5 h-5 border-2 border-[#0A0A0A] border-t-transparent rounded-full animate-spin mr-2" />
                 Submitting to blockchain...
               </>
             )}
             {status === 'error' && 'Try Again'}
           </Button>
 
-          <p className="text-xs text-slate-500 text-center mt-4">
+          <p className="text-xs text-[#F0ECD9]/30 text-center">
             By submitting, you confirm this is a genuine report. False reports will result in reputation penalties.
           </p>
         </div>
@@ -267,5 +269,3 @@ export default function Report() {
     </div>
   );
 }
-
-

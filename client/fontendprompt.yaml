@@ -1,0 +1,196 @@
+ui_style_profile:
+  name: "Cinematic Neo-Brutalist Editorial"
+  inspiration_url: "https://stiff.madebybuzzworthy.com/"
+  intent:
+    - Bold
+    - Cinematic
+    - Editorial
+    - Confident
+    - Serious but playful
+    - High-contrast storytelling UI
+
+layout:
+  grid_system:
+    type: "Custom responsive grid"
+    columns_desktop: 24
+    columns_mobile: 6
+    gutter: "large"
+    spacing_scale: "generous"
+  sections:
+    behavior:
+      - Full-height panels
+      - Horizontal + vertical hybrid scrolling
+      - Strong separation between sections
+      - Asymmetric alignment (left-heavy, right accents)
+  alignment:
+    primary: "Left aligned"
+    secondary: "Occasional right-aligned oversized typography"
+
+backgrounds:
+  base_color: "#0A0A0A"
+  overlays:
+    noise_grain:
+      enabled: true
+      opacity: 0.06
+      blend_mode: "overlay"
+    transition_layers:
+      enabled: true
+      purpose: "scene-like page transitions"
+  section_backgrounds:
+    - solid_black
+    - muted_off_white
+    - subtle textured gradients (very low contrast)
+
+color_palette:
+  primary:
+    black: "#0A0A0A"
+    off_white: "#F0ECD9"
+  accent:
+    red: "#D94A3A"
+  usage_rules:
+    - Red only for emphasis words, never large blocks
+    - Off-white for primary text
+    - Black dominates the UI
+    - No bright secondary colors
+
+typography:
+  philosophy:
+    - Editorial
+    - Print-inspired
+    - Dramatic scale contrast
+  fonts:
+    primary_display:
+      style: "Condensed / Bold / High impact"
+      usage:
+        - Hero headlines
+        - Section titles
+        - Callout words
+    secondary_copy:
+      style: "Readable grotesk / serif hybrid"
+      usage:
+        - Body text
+        - Captions
+        - Metadata
+  sizing:
+    hero_text:
+      min: 80px
+      max: 240px
+      behavior: "Responsive scaling"
+    body_text:
+      desktop: 18–22px
+      mobile: 16–18px
+    captions:
+      size: 12–14px
+      letter_spacing: "wide"
+  text_treatment:
+    - Split text animations (character-based)
+    - Uppercase for labels
+    - Mixed case for storytelling
+    - Italics and bold used sparingly for rhythm
+
+motion_and_animation:
+  libraries_reference:
+    - GSAP-style easing
+    - Lottie-style micro animations
+  animation_style:
+    entrance:
+      - Slow
+      - Smooth
+      - Slightly theatrical
+    scroll:
+      - Parallax
+      - Text reveals on scroll
+      - Section pinning
+  easing:
+    default: "custom cubic-bezier"
+    feel: "weighty, cinematic"
+  hover_effects:
+    - Image/video fade-in
+    - Progress bar reveal
+    - Subtle scale (1.02–1.05)
+  performance_rule:
+    - Animations feel expensive but run smooth
+
+media_usage:
+  images:
+    - Large
+    - Edge-to-edge
+    - Cropped intentionally
+  video:
+    usage:
+      - Hover previews
+      - Ambient looping
+    controls:
+      hidden: true
+  icons:
+    style:
+      - Hand-drawn
+      - Playful
+      - Slightly imperfect
+    animation:
+      - Occasional rotation
+      - Subtle motion
+
+components:
+  navigation:
+    style:
+      - Minimal
+      - Text-first
+      - No boxes
+    behavior:
+      - Hamburger on mobile
+      - Overlay menu
+      - Smooth fade transitions
+  buttons:
+    style:
+      - Text + arrow
+      - No background
+      - Understated
+    hover:
+      - Arrow motion
+      - Slight opacity shift
+  cards:
+    style:
+      - Borderless
+      - Media-first
+      - Title overlays
+    interaction:
+      - Hover reveals motion/video
+  modals:
+    style:
+      - Fullscreen
+      - Dark overlay
+      - Cinematic entry/exit
+
+content_tone:
+  voice:
+    - Confident
+    - Slightly irreverent
+    - Human
+    - Bold statements
+  spacing:
+    - Let text breathe
+    - Never overcrowd
+  hierarchy:
+    - One dominant message per screen
+
+accessibility:
+  contrast:
+    - Always high
+  focus_states:
+    - Minimal but visible
+  motion_reduction:
+    - Respect reduced-motion preferences
+
+do_not_use:
+  - Material Design
+  - Rounded pill buttons
+  - Soft pastel colors
+  - Card-heavy dashboards
+  - Dense UI layouts
+  - Corporate SaaS aesthetics
+
+final_instruction_to_ai:
+  "Apply this style system to the existing UI without changing layout logic.
+  Prioritize cinematic typography, strong contrast, motion, and editorial rhythm.
+  The UI should feel like a short film, not a dashboard."

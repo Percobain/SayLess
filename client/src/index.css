@@ -2,28 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Google Fonts - Condensed Display + Clean Body */
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap");
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
-    --radius: 0.5rem;
+    /* Cinematic Neo-Brutalist Color Palette */
+    --background: 0 0% 4%; /* #0A0A0A */
+    --foreground: 46 31% 89%; /* #F0ECD9 */
+    --card: 0 0% 6%;
+    --card-foreground: 46 31% 89%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 46 31% 89%;
+    --primary: 46 31% 89%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 46 31% 89%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 7 69% 54%; /* #D94A3A */
+    --accent-foreground: 46 31% 89%;
+    --destructive: 7 69% 54%;
+    --destructive-foreground: 46 31% 89%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 7 69% 54%;
+    --radius: 0.25rem;
+
+    /* Custom colors for direct use */
+    --color-black: #0a0a0a;
+    --color-off-white: #f0ecd9;
+    --color-red: #d94a3a;
+    --color-muted: #888888;
   }
 }
 
@@ -31,16 +41,132 @@
   * {
     @apply border-border;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont,
+      sans-serif;
+    background-color: var(--color-black);
+    color: var(--color-off-white);
+  }
+
+  /* Noise grain overlay */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  /* Editorial typography */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Inter Tight", system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    font-weight: 900;
+    letter-spacing: -0.03em;
   }
 }
 
-/* Custom scrollbar for dark UI */
+/* Cinematic motion utilities */
+@layer utilities {
+  .transition-cinematic {
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    transition-duration: 500ms;
+  }
+
+  .transition-cinematic-fast {
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    transition-duration: 300ms;
+  }
+
+  .hover-scale {
+    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+
+  /* Text accent for red emphasis */
+  .text-accent-red {
+    color: var(--color-red);
+  }
+
+  /* Off-white text */
+  .text-off-white {
+    color: var(--color-off-white);
+  }
+
+  /* Deep black background */
+  .bg-deep-black {
+    background-color: var(--color-black);
+  }
+
+  /* Editorial uppercase labels */
+  .label-editorial {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+  }
+
+  /* Fade in animation */
+  .animate-fade-in {
+    animation: fadeIn 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Slide up animation */
+  .animate-slide-up {
+    animation: slideUp 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Custom scrollbar for dark cinematic UI */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -48,10 +174,27 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
+  background: rgba(240, 236, 217, 0.15);
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: rgba(240, 236, 217, 0.25);
+}
+
+/* Focus states - minimal but visible */
+*:focus-visible {
+  outline: 1px solid var(--color-red);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
