@@ -3,22 +3,31 @@ const { ethers } = require('ethers');
 let funderWallet;
 let provider;
 
-function initPrivy() {
+async function initPrivy() {
   const funderKey = process.env.FUNDER_PRIVATE_KEY;
   const rpcUrl = process.env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.ethpandaops.io';
   
-  // Initialize provider and funder wallet
-  provider = new ethers.JsonRpcProvider(rpcUrl);
-  
-  if (funderKey) {
-    funderWallet = new ethers.Wallet(funderKey, provider);
-    console.log('Funder wallet initialized:', funderWallet.address);
-  } else {
-    console.log('Warning: FUNDER_PRIVATE_KEY not set - wallet funding disabled');
+  try {
+    // Initialize provider
+    provider = new ethers.JsonRpcProvider(rpcUrl);
+    
+    // Verify provider is working
+    const network = await provider.getNetwork();
+    console.log('Provider connected to network:', network.name, network.chainId);
+    
+    if (funderKey) {
+      funderWallet = new ethers.Wallet(funderKey, provider);
+      console.log('Funder wallet initialized:', funderWallet.address);
+    } else {
+      console.log('Warning: FUNDER_PRIVATE_KEY not set - wallet funding disabled');
+    }
+    
+    console.log('Wallet funding service initialized');
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize wallet funding service:', error.message);
+    return false;
   }
-  
-  console.log('Wallet funding service initialized');
-  return true;
 }
 
 // Fund a wallet with ETH (uses dedicated funder wallet)
@@ -68,8 +77,13 @@ async function getFunderBalance() {
   if (!funderWallet || !provider) {
     return '0';
   }
-  const balance = await provider.getBalance(funderWallet.address);
-  return ethers.formatEther(balance);
+  try {
+    const balance = await provider.getBalance(funderWallet.address);
+    return ethers.formatEther(balance);
+  } catch (error) {
+    console.error('Error getting funder balance:', error.message);
+    return '0';
+  }
 }
 
 module.exports = {

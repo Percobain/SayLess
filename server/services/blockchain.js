@@ -1,40 +1,34 @@
 const { ethers } = require('ethers');
-
-// Contract ABI (only the functions we need)
-const SAYLESS_ABI = [
-  "function submitReport(bytes32 _cidHash, bytes32 _sessionHash, address _reporter) external",
-  "function verifyReport(uint256 _id, uint256 _rewardAmount) external",
-  "function rejectReport(uint256 _id) external",
-  "function claimRewards(address _wallet) external",
-  "function sendReward(address _to, uint256 _amount) external",
-  "function getReportCount() external view returns (uint256)",
-  "function getReport(uint256 _id) external view returns (bytes32 cidHash, bytes32 sessionHash, address reporter, uint256 timestamp, uint8 status)",
-  "function getReputation(address _wallet) external view returns (int256)",
-  "function getRewards(address _wallet) external view returns (uint256)",
-  "function getBalance() external view returns (uint256)",
-  "event ReportSubmitted(uint256 indexed id, bytes32 cidHash, bytes32 sessionHash, address reporter)",
-  "event ReportVerified(uint256 indexed id, address reporter, uint256 reward)",
-  "event ReportRejected(uint256 indexed id, address reporter)"
-];
+const { SayLessABI } = require('../abi/SayLess');
 
 let provider;
 let signer;
 let contract;
 
-function initBlockchain() {
+async function initBlockchain() {
   const rpcUrl = process.env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.ethpandaops.io';
   const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
   const contractAddress = process.env.CONTRACT_ADDRESS;
   
-  provider = new ethers.JsonRpcProvider(rpcUrl);
-  signer = new ethers.Wallet(privateKey, provider);
-  contract = new ethers.Contract(contractAddress, SAYLESS_ABI, signer);
-  
-  console.log('Blockchain service initialized');
-  console.log('Contract address:', contractAddress);
-  console.log('Signer address:', signer.address);
-  
-  return { provider, signer, contract };
+  try {
+    provider = new ethers.JsonRpcProvider(rpcUrl);
+    
+    // Verify provider is working
+    const network = await provider.getNetwork();
+    console.log('Blockchain provider connected to network:', network.name, network.chainId);
+    
+    signer = new ethers.Wallet(privateKey, provider);
+    contract = new ethers.Contract(contractAddress, SayLessABI, signer);
+    
+    console.log('Blockchain service initialized');
+    console.log('Contract address:', contractAddress);
+    console.log('Signer address:', signer.address);
+    
+    return { provider, signer, contract };
+  } catch (error) {
+    console.error('Failed to initialize blockchain service:', error.message);
+    throw error;
+  }
 }
 
 async function submitReport(cidHash, sessionHash, reporterAddress) {
@@ -118,5 +112,3 @@ module.exports = {
   fundWallet,
   computeKeccak256
 };
-
-

@@ -59,20 +59,20 @@ async function start() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB connected');
     
-    // Initialize blockchain service
+    // Initialize blockchain service (now async)
     console.log('Initializing blockchain service...');
-    initBlockchain();
+    await initBlockchain();
     
-    // Initialize Privy wallet service
+    // Initialize Privy wallet service (now async)
     console.log('Initializing Privy wallet service...');
-    initPrivy();
+    await initPrivy();
     
     // Check funder balance
     try {
       const funderBalance = await getFunderBalance();
       console.log(`Funder wallet balance: ${funderBalance} ETH`);
     } catch (e) {
-      console.log('Could not check funder balance');
+      console.log('Could not check funder balance:', e.message);
     }
     
     // Initialize Gemini AI
