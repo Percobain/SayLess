@@ -1,5 +1,4 @@
-module.exports = {
-  SayLessABI: [
+export const SayLessABI = [
     {
       "anonymous": false,
       "inputs": [
@@ -485,5 +484,4 @@ module.exports = {
       "stateMutability": "payable",
       "type": "receive"
     }
-  ]
-};
+];

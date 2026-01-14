@@ -1,5 +1,5 @@
-const { ethers } = require('ethers');
-const { SayLessABI } = require('../abi/SayLess');
+import { ethers } from 'ethers';
+import { SayLessABI } from '../abi/SayLess.js';
 
 let provider;
 let signer;
@@ -100,7 +100,7 @@ function computeKeccak256(data) {
   return ethers.keccak256(ethers.toUtf8Bytes(data));
 }
 
-module.exports = {
+export {
   initBlockchain,
   submitReport,
   verifyReport,

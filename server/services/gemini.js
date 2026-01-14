@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 let genAI;
 
@@ -67,9 +67,7 @@ Respond with this exact JSON structure:
   };
 }
 
-module.exports = {
+export {
   initGemini,
   analyzeReport
 };
-
-

@@ -1,17 +1,17 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
 
 // Import services
-const { initBlockchain } = require('./services/blockchain');
-const { initGemini } = require('./services/gemini');
-const { initPrivy, getFunderBalance } = require('./services/privy');
+import { initBlockchain } from './services/blockchain.js';
+import { initGemini } from './services/gemini.js';
+import { initPrivy, getFunderBalance } from './services/privy.js';
 
 // Import routes
-const webhookRoutes = require('./routes/webhook');
-const reportRoutes = require('./routes/report');
-const authorityRoutes = require('./routes/authority');
+import webhookRoutes from './routes/webhook.js';
+import reportRoutes from './routes/report.js';
+import authorityRoutes from './routes/authority.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;

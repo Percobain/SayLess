@@ -1,13 +1,13 @@
-const express = require('express');
-const router = express.Router();
+import express from 'express';
+import Report from '../models/Report.js';
+import Session from '../models/Session.js';
+import User from '../models/User.js';
+import { fetchFromIPFS } from '../services/pinata.js';
+import { decryptReport } from '../services/crypto.js';
+import { analyzeReport } from '../services/gemini.js';
+import { verifyReport, rejectReport, getReputation } from '../services/blockchain.js';
 
-const Report = require('../models/Report');
-const Session = require('../models/Session');
-const User = require('../models/User');
-const { fetchFromIPFS } = require('../services/pinata');
-const { decryptReport } = require('../services/crypto');
-const { analyzeReport } = require('../services/gemini');
-const { verifyReport, rejectReport, getReputation } = require('../services/blockchain');
+const router = express.Router();
 
 // GET /api/authority/reports - List all reports
 router.get('/reports', async (req, res) => {
@@ -192,6 +192,4 @@ router.get('/stats', async (req, res) => {
   }
 });
 
-module.exports = router;
-
-
+export default router;

@@ -1,13 +1,28 @@
-const { ethers } = require('ethers');
+import { ethers } from 'ethers';
+import { PrivyClient } from '@privy-io/node';
 
 let funderWallet;
 let provider;
+let privyClient;
 
 async function initPrivy() {
   const funderKey = process.env.FUNDER_PRIVATE_KEY;
   const rpcUrl = process.env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.ethpandaops.io';
+  const privyAppId = process.env.PRIVY_APP_ID;
+  const privyAppSecret = process.env.PRIVY_APP_SECRET;
   
   try {
+    // Initialize Privy client
+    if (privyAppId && privyAppSecret) {
+      privyClient = new PrivyClient({
+        appId: privyAppId,
+        appSecret: privyAppSecret
+      });
+      console.log('Privy client initialized');
+    } else {
+      console.log('Warning: PRIVY_APP_ID or PRIVY_APP_SECRET not set');
+    }
+    
     // Initialize provider
     provider = new ethers.JsonRpcProvider(rpcUrl);
     
@@ -27,6 +42,47 @@ async function initPrivy() {
   } catch (error) {
     console.error('Failed to initialize wallet funding service:', error.message);
     return false;
+  }
+}
+
+// Create a Privy embedded wallet using Node.js SDK
+async function createPrivyWallet() {
+  if (!privyClient) {
+    throw new Error('Privy client not initialized');
+  }
+  
+  try {
+    const wallet = await privyClient.wallets().create({
+      chain_type: 'ethereum'
+    });
+    
+    console.log('[Privy] Created wallet:', wallet.id, wallet.address);
+    
+    return {
+      privyWalletId: wallet.id,
+      address: wallet.address,
+      chainType: wallet.chain_type,
+      ownerId: wallet.owner_id,
+      createdAt: wallet.created_at
+    };
+  } catch (error) {
+    console.error('[Privy] Error creating wallet:', error);
+    throw error;
+  }
+}
+
+// Get a Privy wallet by ID
+async function getPrivyWallet(walletId) {
+  if (!privyClient) {
+    throw new Error('Privy client not initialized');
+  }
+  
+  try {
+    const wallet = await privyClient.wallets().get(walletId);
+    return wallet;
+  } catch (error) {
+    console.error('[Privy] Error getting wallet:', error);
+    throw error;
   }
 }
 
@@ -63,15 +119,6 @@ async function fundWalletWithEth(toAddress, amountEth = '0.01') {
   }
 }
 
-// Create a new wallet (using ethers, not Privy SDK due to ESM issues)
-function createWallet() {
-  const wallet = ethers.Wallet.createRandom();
-  return {
-    address: wallet.address,
-    privateKey: wallet.privateKey
-  };
-}
-
 // Get funder wallet balance
 async function getFunderBalance() {
   if (!funderWallet || !provider) {
@@ -86,9 +133,10 @@ async function getFunderBalance() {
   }
 }
 
-module.exports = {
+export {
   initPrivy,
+  createPrivyWallet,
+  getPrivyWallet,
   fundWalletWithEth,
-  createWallet,
   getFunderBalance
 };

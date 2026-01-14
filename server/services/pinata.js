@@ -43,7 +43,7 @@ async function fetchFromIPFS(cid) {
   return response.json();
 }
 
-module.exports = {
+export {
   pinJSONToIPFS,
   fetchFromIPFS
 };

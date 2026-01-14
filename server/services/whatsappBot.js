@@ -1,6 +1,6 @@
-const logger = require('../utils/logger');
-const { handleIncomingMessage } = require('./whatsappHandlers');
-const twilio = require('twilio');
+import logger from '../utils/logger.js';
+import { handleIncomingMessage } from './whatsappHandlers.js';
+import twilio from 'twilio';
 
 console.log('[WhatsApp] Bot module loading...');
 
@@ -103,4 +103,4 @@ class WhatsAppBot {
 
 // Export singleton instance
 const whatsappBotInstance = new WhatsAppBot();
-module.exports = whatsappBotInstance;
+export default whatsappBotInstance;
