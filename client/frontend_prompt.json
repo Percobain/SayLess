@@ -1,0 +1,212 @@
+{
+    "design_system": {
+        "theme": "glassmorphism",
+        "platform": "iOS-inspired",
+        "mood": "calm, secure, minimal, futuristic",
+        "color_palette": {
+            "background": "radial-gradient(circle at top, #0f172a, #020617)",
+            "glass": "rgba(255, 255, 255, 0.08)",
+            "glass_border": "rgba(255, 255, 255, 0.18)",
+            "primary": "#60a5fa",
+            "success": "#34d399",
+            "danger": "#f87171",
+            "text_primary": "#f8fafc",
+            "text_secondary": "#94a3b8"
+        },
+        "blur": "backdrop-blur-xl",
+        "radius": "rounded-2xl",
+        "shadow": "shadow-[0_20px_60px_rgba(0,0,0,0.45)]",
+        "font": "SF Pro / Inter",
+        "animation": "subtle, spring-based, no aggressive motion"
+    },
+    "global_layout": {
+        "max_width": "1200px",
+        "grid": "12-column bento grid",
+        "spacing": "generous, breathable",
+        "navbar": {
+            "style": "floating glass bar",
+            "items": [
+                "VEIL",
+                "Reports",
+                "Wallet",
+                "Security",
+                "Logout"
+            ]
+        }
+    },
+    "pages": [
+        {
+            "page": "Anonymous Report Session",
+            "route": "/report/:sessionId",
+            "purpose": "User submits encrypted anonymous report",
+            "layout": "centered bento layout",
+            "components": [
+                {
+                    "type": "hero_card",
+                    "title": "Anonymous & Encrypted Report",
+                    "subtitle": "This report is encrypted before it leaves your device. Even VEIL cannot read it.",
+                    "icon": "lock"
+                },
+                {
+                    "type": "text_area",
+                    "label": "Describe the incident",
+                    "placeholder": "Type what happened. Do not include names unless necessary.",
+                    "style": "glass-card large"
+                },
+                {
+                    "type": "bento_grid",
+                    "columns": 3,
+                    "cards": [
+                        {
+                            "title": "Client-side Encryption",
+                            "icon": "shield",
+                            "description": "Your report is encrypted in your browser using the authority’s public key."
+                        },
+                        {
+                            "title": "On-chain Commitment",
+                            "icon": "link",
+                            "description": "A cryptographic hash is immutably stored on Ethereum."
+                        },
+                        {
+                            "title": "Platform Blindness",
+                            "icon": "eye-off",
+                            "description": "VEIL servers cannot decrypt or read your report."
+                        }
+                    ]
+                },
+                {
+                    "type": "stake_selector",
+                    "label": "Stake to submit report",
+                    "default": "0.01 ETH",
+                    "note": "Returned if report is validated"
+                },
+                {
+                    "type": "primary_button",
+                    "label": "Encrypt & Submit Report",
+                    "action": "submitEncryptedReport"
+                }
+            ]
+        },
+        {
+            "page": "User Dashboard",
+            "route": "/dashboard",
+            "purpose": "User views reports, rewards, reputation, and wallet",
+            "layout": "bento dashboard",
+            "components": [
+                {
+                    "type": "profile_card",
+                    "title": "Anonymous Identity",
+                    "fields": {
+                        "ens": "veil-9f3a.eth",
+                        "reputation": "★★★★☆",
+                        "status": "Anonymous & Active"
+                    }
+                },
+                {
+                    "type": "wallet_card",
+                    "title": "Wallet Overview",
+                    "fields": {
+                        "balance": "0.42 ETH",
+                        "rewards": "0.06 ETH",
+                        "staked": "0.01 ETH"
+                    },
+                    "actions": [
+                        "STAKE",
+                        "EXPORT KEY"
+                    ]
+                },
+                {
+                    "type": "reports_table",
+                    "title": "Your Reports",
+                    "columns": [
+                        "Report ID",
+                        "Status",
+                        "Stake",
+                        "Outcome"
+                    ],
+                    "rows": "dynamic"
+                },
+                {
+                    "type": "security_card",
+                    "title": "Security Status",
+                    "items": [
+                        "Client-side encryption enabled",
+                        "No identity linked",
+                        "Transport treated as hostile"
+                    ]
+                }
+            ]
+        },
+        {
+            "page": "Authority Dashboard",
+            "route": "/authority",
+            "purpose": "Authorities review, decrypt, and validate reports",
+            "layout": "data-focused glass grid",
+            "components": [
+                {
+                    "type": "report_feed",
+                    "title": "Incoming Reports",
+                    "filters": [
+                        "Urgent",
+                        "New",
+                        "Flagged"
+                    ]
+                },
+                {
+                    "type": "report_detail_panel",
+                    "sections": [
+                        "Decrypted Content",
+                        "AI Risk Assessment",
+                        "Reporter Reputation",
+                        "On-chain Proof"
+                    ]
+                },
+                {
+                    "type": "action_buttons",
+                    "actions": [
+                        {
+                            "label": "Approve Report",
+                            "style": "success"
+                        },
+                        {
+                            "label": "Reject Report",
+                            "style": "danger"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "page": "Silent Reporting Info",
+            "route": "/silent",
+            "purpose": "Explain no-message reporting",
+            "layout": "centered glass explainer",
+            "components": [
+                {
+                    "type": "headline",
+                    "text": "Report Without Sending a Message"
+                },
+                {
+                    "type": "steps",
+                    "items": [
+                        "Give missed calls to VEIL number",
+                        "Pattern determines report category",
+                        "Encrypted report is created automatically",
+                        "Committed on-chain without text or voice"
+                    ]
+                },
+                {
+                    "type": "highlight_card",
+                    "text": "Nothing was sent. The report still exists."
+                }
+            ]
+        }
+    ],
+    "ux_principles": [
+        "Never show raw cryptography",
+        "Explain safety visually, not verbally",
+        "No clutter, no walls of text",
+        "Everything feels calm and intentional",
+        "Security feels obvious, not scary"
+    ]
+}
