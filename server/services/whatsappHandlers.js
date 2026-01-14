@@ -107,7 +107,7 @@ const handleIncomingMessage = async (params) => {
   }
   
   // BALANCE command
-  else if (command === 'BALANCE') {
+  else if (command === 'BALANCE' || command === 'BAL') {
     const user = await User.findOne({ whatsappHash });
     if (user) {
       try {
@@ -165,6 +165,121 @@ const handleIncomingMessage = async (params) => {
     }
   }
   
+  // WA command - Show wallet address
+  else if (command === 'WA') {
+    const user = await User.findOne({ whatsappHash });
+    if (user) {
+      return `💼 Your Wallet Address\n\n` +
+             `${user.wallet}\n\n` +
+             `View on Sepolia: https://sepolia.etherscan.io/address/${user.wallet}`;
+    } else {
+      return 'No wallet found. Send REPORT first.';
+    }
+  }
+  
+  // TX command - Show transaction history
+  else if (command === 'TX') {
+    const user = await User.findOne({ whatsappHash });
+    if (!user) {
+      return 'No wallet found. Send REPORT first.';
+    }
+    
+    try {
+      // Get all sessions with transactions for this user
+      const sessions = await Session.find({
+        odacityUserId: user.odacityUserId,
+        txHash: { $ne: null }
+      })
+      .sort({ createdAt: -1 })
+      .limit(10); // Show last 10 transactions
+      
+      if (sessions.length === 0) {
+        return `📜 Transaction History\n\n` +
+               `No transactions found yet.\n\n` +
+               `Send REPORT to create your first transaction.`;
+      }
+      
+      let txList = `📜 Transaction History\n\n`;
+      sessions.forEach((session, index) => {
+        const date = new Date(session.createdAt).toLocaleDateString();
+        const statusEmoji = {
+          'pending': '⏳',
+          'under_review': '🔍',
+          'verified': '✅',
+          'rejected': '❌',
+          'closed': '🔒'
+        };
+        
+        txList += `${index + 1}. ${statusEmoji[session.status] || ''} ${session.status.toUpperCase()}\n`;
+        txList += `   Session: ${session.sessionId}\n`;
+        txList += `   Tx: ${session.txHash.slice(0, 20)}...\n`;
+        if (session.rewardAmount) {
+          txList += `   Reward: ${session.rewardAmount} ETH\n`;
+        }
+        txList += `   Date: ${date}\n\n`;
+      });
+      
+      txList += `View on Sepolia: https://sepolia.etherscan.io/address/${user.wallet}`;
+      
+      return txList;
+    } catch (e) {
+      logger.error(`[WhatsApp Handler] TX command error: ${e.message}`);
+      return `❌ Error fetching transactions: ${e.message}`;
+    }
+  }
+  
+  // TXS command - Show all on-chain transactions (incoming and outgoing)
+  else if (command === 'TXS') {
+    const user = await User.findOne({ whatsappHash });
+    if (!user) {
+      return 'No wallet found. Send REPORT first.';
+    }
+    
+    try {
+      // Fetch transactions from Etherscan API (Sepolia)
+      const address = user.wallet;
+      const apiUrl = `https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc`;
+      
+      logger.info(`[WhatsApp Handler] TXS command: Fetching transactions for ${address}`);
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      
+      if (data.status !== '1' || !data.result || data.result.length === 0) {
+        return `🔗 On-Chain Transactions\n\n` +
+               `No on-chain transactions found.\n\n` +
+               `View on Etherscan:\nhttps://sepolia.etherscan.io/address/${address}`;
+      }
+      
+      const transactions = data.result.slice(0, 10); // Show last 10
+      let txList = `🔗 On-Chain Transactions\n\n`;
+      
+      transactions.forEach((tx, index) => {
+        const isIncoming = tx.to.toLowerCase() === address.toLowerCase();
+        const direction = isIncoming ? '⬇️ IN' : '⬆️ OUT';
+        const amount = ethers.formatEther(tx.value);
+        const date = new Date(parseInt(tx.timeStamp) * 1000).toLocaleDateString();
+        const time = new Date(parseInt(tx.timeStamp) * 1000).toLocaleTimeString();
+        
+        txList += `${index + 1}. ${direction}\n`;
+        txList += `   ${amount} ETH\n`;
+        if (isIncoming) {
+          txList += `   From: ${tx.from.slice(0, 10)}...${tx.from.slice(-6)}\n`;
+        } else {
+          txList += `   To: ${tx.to.slice(0, 10)}...${tx.to.slice(-6)}\n`;
+        }
+        txList += `   Tx: ${tx.hash.slice(0, 20)}...\n`;
+        txList += `   ${date} ${time}\n\n`;
+      });
+      
+      txList += `View all: https://sepolia.etherscan.io/address/${address}`;
+      
+      return txList;
+    } catch (e) {
+      logger.error(`[WhatsApp Handler] TXS command error: ${e.message}`);
+      return `❌ Error fetching on-chain transactions: ${e.message}`;
+    }
+  }
+  
   // EXPORT command
   else if (command === 'EXPORT') {
     const user = await User.findOne({ whatsappHash });
@@ -210,6 +325,9 @@ const handleIncomingMessage = async (params) => {
            `BALANCE - View wallet balance\n` +
            `REWARDS - View pending rewards\n` +
            `CLAIM - Claim your rewards\n` +
+           `WA - Show wallet address\n` +
+           `TX - Show transaction history\n` +
+           `TXS - Show all on-chain transactions\n` +
            `SEED - Fund wallet with 0.01 Sepolia ETH\n` +
            `EXPORT - Export wallet info\n` +
            `HELP - This message\n\n` +
