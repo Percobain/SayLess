@@ -1,18 +1,19 @@
-import { useState } from "react";
-import { Button } from "./components/ui/button";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Landing from './pages/Landing';
+import Report from './pages/Report';
+import Authority from './pages/Authority';
 
 function App() {
-  const [message, setMessage] = useState("");
-
   return (
-    <div>
-      <h1>Hello World</h1>
-      <Button onClick={() => setMessage("you wanted this boilerplate in typescript? you bloody masochist")}>
-        Click me
-      </Button>
-      {message && <p>{message}</p>}
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/r/:sessionId" element={<Report />} />
+        <Route path="/report/:sessionId" element={<Report />} />
+        <Route path="/authority" element={<Authority />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;

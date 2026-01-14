@@ -1,0 +1,11 @@
+{
+  "network": "sepolia",
+  "deployer": "0x71AfE44200A819171a0687b1026E8d4424472Ff8",
+  "deploymentTime": "2026-01-14T18:18:02.555Z",
+  "contracts": {
+    "sayless": {
+      "address": "0x371D1e299E1D5a4B72fD3D561CE7A0B57069394f",
+      "balance": "0.01"
+    }
+  }
+}

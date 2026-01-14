@@ -8,18 +8,30 @@ async function main() {
     console.log("Deploying with:", deployer.address);
     console.log("Network:", hre.network.name);
 
-    // Calculate unlock time (e.g., 1 year from now)
-    // You can adjust this value as needed
-    const unlockTime = Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60; // 1 year from now
-    console.log("\nUnlock time:", new Date(unlockTime * 1000).toISOString());
+    // Check balance
+    const balance = await hre.ethers.provider.getBalance(deployer.address);
+    console.log("Deployer balance:", hre.ethers.formatEther(balance), "ETH");
 
-    // Deploy Lock
-    console.log("\nDeploying Lock...");
-    const Lock = await hre.ethers.getContractFactory("Lock");
-    const lock = await Lock.deploy(unlockTime);
-    await lock.waitForDeployment();
-    const lockAddress = await lock.getAddress();
-    console.log("Lock deployed to:", lockAddress);
+    // Deploy SayLess
+    console.log("\nDeploying SayLess...");
+    const SayLess = await hre.ethers.getContractFactory("SayLess");
+    const sayless = await SayLess.deploy();
+    await sayless.waitForDeployment();
+    const saylessAddress = await sayless.getAddress();
+    console.log("SayLess deployed to:", saylessAddress);
+
+    // Fund the contract with some ETH for rewards (0.01 ETH)
+    console.log("\nFunding contract with 0.01 ETH for rewards pool...");
+    const fundTx = await deployer.sendTransaction({
+      to: saylessAddress,
+      value: hre.ethers.parseEther("0.01")
+    });
+    await fundTx.wait();
+    console.log("Contract funded! Tx:", fundTx.hash);
+
+    // Verify contract balance
+    const contractBalance = await hre.ethers.provider.getBalance(saylessAddress);
+    console.log("Contract balance:", hre.ethers.formatEther(contractBalance), "ETH");
 
     // Save deployment info
     const deploymentInfo = {
@@ -27,10 +39,9 @@ async function main() {
       deployer: deployer.address,
       deploymentTime: new Date().toISOString(),
       contracts: {
-        lock: {
-          address: lockAddress,
-          unlockTime: unlockTime,
-          unlockTimeReadable: new Date(unlockTime * 1000).toISOString()
+        sayless: {
+          address: saylessAddress,
+          balance: hre.ethers.formatEther(contractBalance)
         }
       }
     };
@@ -38,8 +49,13 @@ async function main() {
     fs.writeFileSync(deploymentPath, JSON.stringify(deploymentInfo, null, 2));
     console.log("\nSaved deployment info to:", deploymentPath);
 
-    console.log("\nDone.");
-    console.log("Lock:", lockAddress);
+    console.log("\n========================================");
+    console.log("DEPLOYMENT COMPLETE");
+    console.log("========================================");
+    console.log("SayLess Contract:", saylessAddress);
+    console.log("Network:", hre.network.name);
+    console.log("========================================");
+
   } catch (error) {
     console.error("Deployment failed:", error);
     process.exit(1);
