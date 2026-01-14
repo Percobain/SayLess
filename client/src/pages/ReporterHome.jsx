@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  FileText, Radio, Award, Coins, Hash, TrendingUp, Shield, 
-  Copy, Check, ArrowRight, Clock, CheckCircle, XCircle, Zap 
+import {
+  FileText, Radio, Award, Coins, Hash, TrendingUp, Shield,
+  Copy, Check, ArrowRight, Clock, CheckCircle, XCircle, Zap
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
+import { useI18n } from '../context/I18nContext';
 
 // Generate a random session ID
 const generateSessionId = () => {
@@ -21,6 +22,7 @@ const recentReports = [
 ];
 
 export default function ReporterHome() {
+  const { t } = useI18n();
   const [sessionId] = useState(generateSessionId());
   const [copied, setCopied] = useState(false);
 
@@ -40,9 +42,9 @@ export default function ReporterHome() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      verified: { bg: 'bg-neo-teal', icon: CheckCircle, label: 'Verified' },
-      pending: { bg: 'bg-neo-orange', icon: Clock, label: 'Pending' },
-      rejected: { bg: 'bg-neo-maroon', icon: XCircle, label: 'Rejected' },
+      verified: { bg: 'bg-neo-teal', icon: CheckCircle, label: t('common.verified') },
+      pending: { bg: 'bg-neo-orange', icon: Clock, label: t('common.pending') },
+      rejected: { bg: 'bg-neo-maroon', icon: XCircle, label: t('common.rejected') },
     };
     const badge = badges[status];
     const Icon = badge.icon;
@@ -63,13 +65,13 @@ export default function ReporterHome() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
                 <h1 className="text-4xl md:text-5xl font-heading font-bold text-neo-cream mb-2">
-                  Reporter Dashboard
+                  {t('reporterHome.title')}
                 </h1>
                 <p className="text-neo-cream/60">
-                  Your anonymous identity. Submit reports and earn rewards.
+                  {t('reporterHome.subtitle')}
                 </p>
               </div>
-              
+
               {/* Session ID */}
               <NeoCard className="p-4 bg-neo-teal border-neo-teal">
                 <div className="flex items-center gap-3">
@@ -77,7 +79,7 @@ export default function ReporterHome() {
                     <Hash className="w-5 h-5 text-neo-navy" />
                   </div>
                   <div>
-                    <p className="text-xs text-neo-cream/70 uppercase">Session</p>
+                    <p className="text-xs text-neo-cream/70 uppercase">{t('common.session')}</p>
                     <p className="font-mono font-bold text-neo-cream">{sessionId}</p>
                   </div>
                   <button
@@ -103,19 +105,19 @@ export default function ReporterHome() {
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x-[3px] divide-neo-navy">
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-navy">{stats.reportCount}</p>
-              <p className="text-sm text-neo-navy/60">Reports</p>
+              <p className="text-sm text-neo-navy/60">{t('common.reports')}</p>
             </div>
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-teal">{stats.stakeUsed}</p>
-              <p className="text-sm text-neo-navy/60">Stake Used</p>
+              <p className="text-sm text-neo-navy/60">{t('common.stakeUsed')}</p>
             </div>
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-orange">{stats.reputationScore}</p>
-              <p className="text-sm text-neo-navy/60">Reputation</p>
+              <p className="text-sm text-neo-navy/60">{t('common.reputation')}</p>
             </div>
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-teal">{stats.pendingRewards}</p>
-              <p className="text-sm text-neo-navy/60">Pending Rewards</p>
+              <p className="text-sm text-neo-navy/60">{t('common.pendingRewards')}</p>
             </div>
           </div>
         </div>
@@ -128,8 +130,8 @@ export default function ReporterHome() {
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Actions Column */}
               <div className="lg:col-span-2 space-y-6">
-                <h2 className="text-2xl font-heading font-bold text-neo-navy mb-4">Quick Actions</h2>
-                
+                <h2 className="text-2xl font-heading font-bold text-neo-navy mb-4">{t('reporterHome.quickActions')}</h2>
+
                 <div className="grid sm:grid-cols-2 gap-4">
                   {/* Create Report */}
                   <Link to={`/reporter/report?session=${sessionId}`}>
@@ -138,10 +140,10 @@ export default function ReporterHome() {
                         <div className="w-14 h-14 bg-neo-navy border-[3px] border-neo-navy flex items-center justify-center mb-4">
                           <FileText className="w-7 h-7 text-neo-cream" />
                         </div>
-                        <h3 className="text-xl font-heading font-bold text-neo-navy mb-2">Create Report</h3>
-                        <p className="text-sm text-neo-navy/70 mb-4 flex-grow">Submit an encrypted crime report with evidence</p>
+                        <h3 className="text-xl font-heading font-bold text-neo-navy mb-2">{t('reporterHome.createReport.title')}</h3>
+                        <p className="text-sm text-neo-navy/70 mb-4 flex-grow">{t('reporterHome.createReport.description')}</p>
                         <div className="flex items-center gap-2 text-neo-navy font-bold text-sm">
-                          Start Now <ArrowRight className="w-4 h-4" />
+                          {t('reporterHome.createReport.action')} <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </NeoCard>
@@ -154,10 +156,10 @@ export default function ReporterHome() {
                         <div className="w-14 h-14 bg-neo-cream border-[3px] border-neo-navy flex items-center justify-center mb-4">
                           <Radio className="w-7 h-7 text-neo-navy" />
                         </div>
-                        <h3 className="text-xl font-heading font-bold text-neo-cream mb-2">Silent Report</h3>
-                        <p className="text-sm text-neo-cream/80 mb-4 flex-grow">Morse-code style tap reporting for emergencies</p>
+                        <h3 className="text-xl font-heading font-bold text-neo-cream mb-2">{t('reporterHome.silentReport.title')}</h3>
+                        <p className="text-sm text-neo-cream/80 mb-4 flex-grow">{t('reporterHome.silentReport.description')}</p>
                         <div className="flex items-center gap-2 text-neo-cream font-bold text-sm">
-                          Start Now <ArrowRight className="w-4 h-4" />
+                          {t('reporterHome.silentReport.action')} <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </NeoCard>
@@ -170,10 +172,10 @@ export default function ReporterHome() {
                         <div className="w-14 h-14 bg-neo-teal border-[3px] border-neo-navy flex items-center justify-center mb-4">
                           <Shield className="w-7 h-7 text-neo-cream" />
                         </div>
-                        <h3 className="text-xl font-heading font-bold text-neo-navy mb-2">My Reputation</h3>
-                        <p className="text-sm text-neo-navy/70 mb-4 flex-grow">View your anonymous identity and score</p>
+                        <h3 className="text-xl font-heading font-bold text-neo-navy mb-2">{t('reporterHome.myReputation.title')}</h3>
+                        <p className="text-sm text-neo-navy/70 mb-4 flex-grow">{t('reporterHome.myReputation.description')}</p>
                         <div className="flex items-center gap-2 text-neo-navy font-bold text-sm">
-                          View Profile <ArrowRight className="w-4 h-4" />
+                          {t('reporterHome.myReputation.action')} <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </NeoCard>
@@ -186,10 +188,10 @@ export default function ReporterHome() {
                         <div className="w-14 h-14 bg-neo-orange border-[3px] border-neo-navy flex items-center justify-center mb-4">
                           <Award className="w-7 h-7 text-neo-navy" />
                         </div>
-                        <h3 className="text-xl font-heading font-bold text-neo-navy mb-2">Rewards</h3>
-                        <p className="text-sm text-neo-navy/70 mb-4 flex-grow">Check earnings and claim pending rewards</p>
+                        <h3 className="text-xl font-heading font-bold text-neo-navy mb-2">{t('reporterHome.rewards.title')}</h3>
+                        <p className="text-sm text-neo-navy/70 mb-4 flex-grow">{t('reporterHome.rewards.description')}</p>
                         <div className="flex items-center gap-2 text-neo-navy font-bold text-sm">
-                          View Wallet <ArrowRight className="w-4 h-4" />
+                          {t('reporterHome.rewards.action')} <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </NeoCard>
@@ -202,7 +204,7 @@ export default function ReporterHome() {
                 {/* Recent Reports */}
                 <NeoCard className="overflow-hidden">
                   <div className="p-4 bg-neo-navy">
-                    <h3 className="font-heading font-bold text-neo-cream">Recent Reports</h3>
+                    <h3 className="font-heading font-bold text-neo-cream">{t('reporterHome.recentReports')}</h3>
                   </div>
                   <div className="divide-y-[2px] divide-neo-navy">
                     {recentReports.map((report) => (
@@ -222,7 +224,7 @@ export default function ReporterHome() {
                   </div>
                   <div className="p-3 border-t-[2px] border-neo-navy">
                     <Link to="/reporter/history" className="text-sm font-bold text-neo-teal hover:text-neo-orange">
-                      View All Reports →
+                      {t('reporterHome.viewAllReports')}
                     </Link>
                   </div>
                 </NeoCard>
@@ -233,20 +235,20 @@ export default function ReporterHome() {
                     <div className="w-10 h-10 bg-neo-orange flex items-center justify-center">
                       <Zap className="w-5 h-5 text-neo-navy" />
                     </div>
-                    <h3 className="font-heading font-bold text-neo-cream">Earn More</h3>
+                    <h3 className="font-heading font-bold text-neo-cream">{t('reporterHome.earnMore')}</h3>
                   </div>
                   <ul className="space-y-2 text-sm text-neo-cream/80">
                     <li className="flex items-start gap-2">
                       <span className="text-neo-orange">•</span>
-                      <span>Higher severity = higher rewards</span>
+                      <span>{t('reporterHome.tip1')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-neo-orange">•</span>
-                      <span>Include evidence for verification</span>
+                      <span>{t('reporterHome.tip2')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-neo-orange">•</span>
-                      <span>Build reputation for weight bonuses</span>
+                      <span>{t('reporterHome.tip3')}</span>
                     </li>
                   </ul>
                 </NeoCard>
@@ -260,11 +262,9 @@ export default function ReporterHome() {
                   <Shield className="w-6 h-6 text-neo-maroon" />
                 </div>
                 <div>
-                  <h4 className="font-heading font-bold text-neo-cream mb-2">Your Privacy is Protected</h4>
+                  <h4 className="font-heading font-bold text-neo-cream mb-2">{t('reporterHome.privacyProtected')}</h4>
                   <p className="text-neo-cream/80 text-sm">
-                    Your session ID is temporary and cannot be linked to your real identity. 
-                    All reports are encrypted end-to-end in your browser before transmission. 
-                    Even we cannot read your reports.
+                    {t('reporterHome.privacyMessage')}
                   </p>
                 </div>
               </div>

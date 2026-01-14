@@ -3,6 +3,7 @@ import { Scale, ThumbsUp, ThumbsDown, Clock, Users, Award, AlertTriangle, Gavel,
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
+import { useI18n } from '../context/I18nContext';
 
 // Mock disputed reports
 const mockDisputes = [
@@ -55,6 +56,7 @@ const mockDisputes = [
 ];
 
 export default function JuryDashboard() {
+  const { t } = useI18n();
   const [selectedDispute, setSelectedDispute] = useState(null);
   const [userVote, setUserVote] = useState(null);
   const [hasVoted, setHasVoted] = useState({});
@@ -83,13 +85,13 @@ export default function JuryDashboard() {
               <div>
                 <div className="neo-badge-orange mb-4">
                   <Scale className="w-4 h-4" />
-                  Dispute Resolution
+                  {t('jury.badge')}
                 </div>
                 <h1 className="text-4xl md:text-5xl font-heading font-bold text-neo-cream mb-2">
-                  Jury Dashboard
+                  {t('jury.title')}
                 </h1>
                 <p className="text-neo-cream/60">
-                  Vote on disputed reports. Your influence is weighted by reputation.
+                  {t('jury.subtitle')}
                 </p>
               </div>
             </div>
@@ -103,19 +105,19 @@ export default function JuryDashboard() {
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x-[3px] divide-neo-navy">
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-cream">{userRep}</p>
-              <p className="text-sm text-neo-cream/70">Your Rep</p>
+              <p className="text-sm text-neo-cream/70">{t('jury.yourRep')}</p>
             </div>
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-orange">{voteWeight}x</p>
-              <p className="text-sm text-neo-cream/70">Vote Weight</p>
+              <p className="text-sm text-neo-cream/70">{t('jury.voteWeight')}</p>
             </div>
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-cream">{casesJudged}</p>
-              <p className="text-sm text-neo-cream/70">Cases Judged</p>
+              <p className="text-sm text-neo-cream/70">{t('jury.casesJudged')}</p>
             </div>
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-orange">{successRate}%</p>
-              <p className="text-sm text-neo-cream/70">Success Rate</p>
+              <p className="text-sm text-neo-cream/70">{t('jury.successRate')}</p>
             </div>
           </div>
         </div>
@@ -127,16 +129,16 @@ export default function JuryDashboard() {
           <div className="max-w-4xl mx-auto">
             {/* Filter Tabs */}
             <div className="flex items-center gap-4 mb-8">
-              <NeoButton variant="navy" size="sm">All Disputes</NeoButton>
-              <NeoButton variant="default" size="sm">Active ({mockDisputes.filter(d => d.status === 'active').length})</NeoButton>
-              <NeoButton variant="default" size="sm">Ended</NeoButton>
+              <NeoButton variant="navy" size="sm">{t('jury.allDisputes')}</NeoButton>
+              <NeoButton variant="default" size="sm">{t('jury.active')} ({mockDisputes.filter(d => d.status === 'active').length})</NeoButton>
+              <NeoButton variant="default" size="sm">{t('jury.ended')}</NeoButton>
             </div>
 
             {/* Disputes List */}
             <div className="space-y-6">
               {mockDisputes.map((dispute) => (
-                <NeoCard 
-                  key={dispute.id} 
+                <NeoCard
+                  key={dispute.id}
                   className={`overflow-hidden ${dispute.status === 'ended' ? 'opacity-80' : ''}`}
                 >
                   {/* Header */}
@@ -152,7 +154,7 @@ export default function JuryDashboard() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`neo-badge ${dispute.status === 'active' ? 'bg-neo-orange text-neo-navy' : 'bg-neo-cream/20 text-neo-cream'} border-neo-cream`}>
-                        {dispute.status === 'active' ? 'Active' : 'Ended'}
+                        {dispute.status === 'active' ? t('jury.active') : t('jury.ended')}
                       </span>
                       {dispute.status === 'active' && (
                         <div className="flex items-center gap-1 text-neo-cream">
@@ -168,20 +170,20 @@ export default function JuryDashboard() {
                     {/* Left: Report Details */}
                     <div className="space-y-4">
                       <div>
-                        <p className="text-xs uppercase font-bold text-neo-navy/60 mb-2">Category / Severity</p>
+                        <p className="text-xs uppercase font-bold text-neo-navy/60 mb-2">{t('jury.categorySeverity')}</p>
                         <div className="flex items-center gap-2">
                           <span className="neo-badge-orange">{dispute.category}</span>
                           <span className="neo-badge-navy">{dispute.severity}/10</span>
                         </div>
                       </div>
-                      
+
                       <div>
-                        <p className="text-xs uppercase font-bold text-neo-navy/60 mb-1">Report Summary</p>
+                        <p className="text-xs uppercase font-bold text-neo-navy/60 mb-1">{t('jury.reportSummary')}</p>
                         <p className="text-sm text-neo-navy/80">{dispute.description}</p>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <p className="text-xs text-neo-navy/60">Reporter Rep:</p>
+                        <p className="text-xs text-neo-navy/60">{t('jury.reporterRep')}</p>
                         <span className="font-bold text-neo-teal">{dispute.reporterRep}</span>
                       </div>
                     </div>
@@ -189,12 +191,12 @@ export default function JuryDashboard() {
                     {/* Right: Dispute Details */}
                     <div className="space-y-4">
                       <NeoCard variant="maroon" className="p-3">
-                        <p className="text-xs uppercase font-bold text-neo-cream/80 mb-1">Authority's Rejection</p>
+                        <p className="text-xs uppercase font-bold text-neo-cream/80 mb-1">{t('jury.authorityRejection')}</p>
                         <p className="text-sm text-neo-cream">{dispute.authorityReason}</p>
                       </NeoCard>
 
                       <NeoCard variant="teal" className="p-3">
-                        <p className="text-xs uppercase font-bold text-neo-cream/80 mb-1">Reporter's Appeal</p>
+                        <p className="text-xs uppercase font-bold text-neo-cream/80 mb-1">{t('jury.reporterAppeal')}</p>
                         <p className="text-sm text-neo-cream">{dispute.reporterAppeal}</p>
                       </NeoCard>
                     </div>
@@ -207,23 +209,23 @@ export default function JuryDashboard() {
                       <div className="flex items-center justify-between text-sm mb-2">
                         <span className="flex items-center gap-1 text-neo-teal font-bold">
                           <ThumbsUp className="w-4 h-4" />
-                          Valid ({dispute.votesValid}%)
+                          {t('jury.valid')} ({dispute.votesValid}%)
                         </span>
                         <span className="flex items-center gap-1 text-neo-navy/60">
                           <Users className="w-4 h-4" />
-                          {dispute.totalVoters} voters
+                          {dispute.totalVoters} {t('jury.voters')}
                         </span>
                         <span className="flex items-center gap-1 text-neo-maroon font-bold">
-                          Invalid ({dispute.votesInvalid}%)
+                          {t('jury.invalid')} ({dispute.votesInvalid}%)
                           <ThumbsDown className="w-4 h-4" />
                         </span>
                       </div>
                       <div className="h-5 bg-neo-cream border-[3px] border-neo-navy flex overflow-hidden">
-                        <div 
+                        <div
                           className="bg-neo-teal h-full transition-all"
                           style={{ width: `${dispute.votesValid}%` }}
                         />
-                        <div 
+                        <div
                           className="bg-neo-maroon h-full transition-all"
                           style={{ width: `${dispute.votesInvalid}%` }}
                         />
@@ -240,7 +242,7 @@ export default function JuryDashboard() {
                             <ThumbsDown className="w-5 h-5 text-neo-cream" />
                           )}
                           <p className="font-heading font-bold text-neo-cream">
-                            Verdict: {dispute.verdict === 'valid' ? 'Report Valid' : 'Report Invalid'}
+                            {t('jury.verdict')} {dispute.verdict === 'valid' ? t('jury.reportValid') : t('jury.reportInvalid')}
                           </p>
                         </div>
                       </NeoCard>
@@ -249,27 +251,27 @@ export default function JuryDashboard() {
                         <div className="flex items-center justify-center gap-2">
                           <Award className="w-5 h-5 text-neo-cream" />
                           <p className="font-heading font-bold text-neo-cream">
-                            You voted: {hasVoted[dispute.id] === 'valid' ? 'Valid' : 'Invalid'}
+                            {t('jury.youVoted')} {hasVoted[dispute.id] === 'valid' ? t('jury.valid') : t('jury.invalid')}
                           </p>
                         </div>
                       </NeoCard>
                     ) : (
                       <div className="flex gap-4">
-                        <NeoButton 
-                          variant="teal" 
+                        <NeoButton
+                          variant="teal"
                           className="flex-1"
                           onClick={() => handleVote(dispute.id, 'valid')}
                         >
                           <ThumbsUp className="w-5 h-5 mr-2" />
-                          Vote Valid
+                          {t('jury.voteValid')}
                         </NeoButton>
-                        <NeoButton 
+                        <NeoButton
                           variant="maroon"
                           className="flex-1"
                           onClick={() => handleVote(dispute.id, 'invalid')}
                         >
                           <ThumbsDown className="w-5 h-5 mr-2" />
-                          Vote Invalid
+                          {t('jury.voteInvalid')}
                         </NeoButton>
                       </div>
                     )}
@@ -285,10 +287,9 @@ export default function JuryDashboard() {
                   <AlertTriangle className="w-6 h-6 text-neo-navy" />
                 </div>
                 <div>
-                  <h4 className="font-heading font-bold text-neo-cream mb-2">Reputation-Weighted Voting</h4>
+                  <h4 className="font-heading font-bold text-neo-cream mb-2">{t('jury.reputationWeightedVoting')}</h4>
                   <p className="text-neo-cream/70 text-sm">
-                    Your vote is weighted by your reputation score. Higher reputation = more influence on the outcome.
-                    Voting correctly on disputes increases your reputation and earns rewards.
+                    {t('jury.votingExplanation')}
                   </p>
                 </div>
               </div>

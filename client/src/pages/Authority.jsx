@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Shield, ArrowLeft, RefreshCw, Eye, CheckCircle, XCircle, 
+import {
+  Shield, ArrowLeft, RefreshCw, Eye, CheckCircle, XCircle,
   Clock, AlertTriangle, ExternalLink, Bot, FileText, Filter
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
 import { getAuthorityReports, decryptReport, verifyReport, rejectReport, getAuthorityStats } from '../lib/api';
+import { useI18n } from '../context/I18nContext';
 
 export default function Authority() {
+  const { t } = useI18n();
   const [reports, setReports] = useState([]);
   const [stats, setStats] = useState({ total: 0, pending: 0, verified: 0, rejected: 0 });
   const [loading, setLoading] = useState(true);
@@ -42,7 +44,7 @@ export default function Authority() {
     setSelectedReport(report);
     setDecryptedData(null);
     setDecrypting(true);
-    
+
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
       const data = await decryptReport(report._id);
@@ -51,14 +53,14 @@ export default function Authority() {
       console.error('Decryption failed:', err);
       setDecryptedData({ error: err.message });
     }
-    
+
     setDecrypting(false);
   };
 
   const handleVerify = async () => {
     if (!selectedReport) return;
     setActionLoading(true);
-    
+
     try {
       await verifyReport(selectedReport._id, '0.005');
       await fetchData();
@@ -67,14 +69,14 @@ export default function Authority() {
     } catch (err) {
       console.error('Verification failed:', err);
     }
-    
+
     setActionLoading(false);
   };
 
   const handleReject = async () => {
     if (!selectedReport) return;
     setActionLoading(true);
-    
+
     try {
       await rejectReport(selectedReport._id);
       await fetchData();
@@ -83,20 +85,20 @@ export default function Authority() {
     } catch (err) {
       console.error('Rejection failed:', err);
     }
-    
+
     setActionLoading(false);
   };
 
   const getStatusBadge = (status) => {
     const badges = {
-      'under_review': { bg: 'bg-neo-orange text-neo-navy', label: 'Under Review', icon: Clock },
-      'verified': { bg: 'bg-neo-teal text-neo-cream', label: 'Verified', icon: CheckCircle },
-      'rejected': { bg: 'bg-neo-maroon text-neo-cream', label: 'Rejected', icon: XCircle },
-      'pending': { bg: 'bg-neo-cream text-neo-navy', label: 'Pending', icon: Clock }
+      'under_review': { bg: 'bg-neo-orange text-neo-navy', label: t('authority.status.underReview'), icon: Clock },
+      'verified': { bg: 'bg-neo-teal text-neo-cream', label: t('authority.status.verified'), icon: CheckCircle },
+      'rejected': { bg: 'bg-neo-maroon text-neo-cream', label: t('authority.status.rejected'), icon: XCircle },
+      'pending': { bg: 'bg-neo-cream text-neo-navy', label: t('authority.status.pending'), icon: Clock }
     };
     const badge = badges[status] || badges.pending;
     const Icon = badge.icon;
-    
+
     return (
       <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold uppercase border-[2px] border-neo-navy ${badge.bg}`}>
         <Icon className="w-3 h-3" />
@@ -105,8 +107,8 @@ export default function Authority() {
     );
   };
 
-  const filteredReports = filter === 'all' 
-    ? reports 
+  const filteredReports = filter === 'all'
+    ? reports
     : reports.filter(r => r.status === filter);
 
   return (
@@ -118,18 +120,18 @@ export default function Authority() {
             <div>
               <div className="neo-badge-teal mb-3">
                 <Shield className="w-4 h-4" />
-                Authority Access
+                {t('authority.badge')}
               </div>
               <h1 className="text-4xl md:text-5xl font-heading font-bold text-neo-cream mb-2">
-                Authority Dashboard
+                {t('authority.title')}
               </h1>
               <p className="text-neo-cream/60">
-                Review and verify encrypted crime reports
+                {t('authority.subtitle')}
               </p>
             </div>
             <NeoButton variant="orange" onClick={fetchData}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
+              {t('authority.refresh')}
             </NeoButton>
           </div>
         </div>
@@ -141,19 +143,19 @@ export default function Authority() {
           <div className="grid grid-cols-2 md:grid-cols-4 divide-x-[3px] divide-neo-navy">
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-navy">{stats.total}</p>
-              <p className="text-sm text-neo-navy/60">Total Reports</p>
+              <p className="text-sm text-neo-navy/60">{t('authority.totalReports')}</p>
             </div>
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-orange">{stats.pending}</p>
-              <p className="text-sm text-neo-navy/60">Pending Review</p>
+              <p className="text-sm text-neo-navy/60">{t('authority.pendingReview')}</p>
             </div>
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-teal">{stats.verified}</p>
-              <p className="text-sm text-neo-navy/60">Verified</p>
+              <p className="text-sm text-neo-navy/60">{t('authority.verified')}</p>
             </div>
             <div className="py-6 text-center">
               <p className="text-4xl font-heading font-bold text-neo-maroon">{stats.rejected}</p>
-              <p className="text-sm text-neo-navy/60">Rejected</p>
+              <p className="text-sm text-neo-navy/60">{t('authority.rejected')}</p>
             </div>
           </div>
         </div>
@@ -168,7 +170,7 @@ export default function Authority() {
               <div className="p-4 border-b-[3px] border-neo-navy bg-neo-navy flex items-center justify-between">
                 <h2 className="font-heading font-bold text-lg flex items-center gap-2 text-neo-cream">
                   <FileText className="w-5 h-5" />
-                  Reports
+                  {t('authority.reports')}
                 </h2>
                 <div className="flex gap-1">
                   {['all', 'under_review', 'verified', 'rejected'].map((f) => (
@@ -177,36 +179,36 @@ export default function Authority() {
                       onClick={() => setFilter(f)}
                       className={`
                         px-2 py-1 text-xs font-bold uppercase border-[2px] border-neo-cream transition-colors
-                        ${filter === f 
-                          ? 'bg-neo-orange text-neo-navy border-neo-orange' 
+                        ${filter === f
+                          ? 'bg-neo-orange text-neo-navy border-neo-orange'
                           : 'bg-transparent text-neo-cream hover:bg-neo-teal'
                         }
                       `}
                     >
-                      {f === 'all' ? 'All' : f === 'under_review' ? 'Review' : f.charAt(0).toUpperCase() + f.slice(1)}
+                      {f === 'all' ? t('authority.filterAll') : f === 'under_review' ? t('authority.filterReview') : f.charAt(0).toUpperCase() + f.slice(1)}
                     </button>
                   ))}
                 </div>
               </div>
-              
+
               <div className="max-h-[500px] overflow-y-auto divide-y-[2px] divide-neo-navy">
                 {loading ? (
                   <div className="p-8 text-center">
                     <div className="w-10 h-10 border-4 border-neo-orange border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                    <p className="text-neo-navy/60">Loading reports...</p>
+                    <p className="text-neo-navy/60">{t('authority.loadingReports')}</p>
                   </div>
                 ) : filteredReports.length === 0 ? (
                   <div className="p-8 text-center text-neo-navy/60">
-                    No reports found
+                    {t('authority.noReportsFound')}
                   </div>
                 ) : (
                   filteredReports.map((report) => (
-                    <div 
+                    <div
                       key={report._id}
                       className={`
                         p-4 cursor-pointer transition-colors
-                        ${selectedReport?._id === report._id 
-                          ? 'bg-neo-orange' 
+                        ${selectedReport?._id === report._id
+                          ? 'bg-neo-orange'
                           : 'hover:bg-neo-cream/50'
                         }
                       `}
@@ -215,7 +217,7 @@ export default function Authority() {
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <p className={`font-bold ${selectedReport?._id === report._id ? 'text-neo-navy' : 'text-neo-navy'}`}>
-                            Session: {report.sessionId}
+                            {t('common.session')}: {report.sessionId}
                           </p>
                           <p className="text-xs text-neo-navy/60">
                             {new Date(report.createdAt).toLocaleString()}
@@ -223,11 +225,11 @@ export default function Authority() {
                         </div>
                         {getStatusBadge(report.status)}
                       </div>
-                      
+
                       <div className="flex items-center gap-4 text-xs text-neo-navy/60">
                         <span>Rep: {report.reporterReputation || 0}</span>
                         {report.txHash && (
-                          <a 
+                          <a
                             href={`https://sepolia.etherscan.io/tx/${report.txHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -249,34 +251,34 @@ export default function Authority() {
               <div className="p-4 border-b-[3px] border-neo-navy bg-neo-teal">
                 <h2 className="font-heading font-bold text-lg flex items-center gap-2 text-neo-cream">
                   <Eye className="w-5 h-5" />
-                  Report Details
+                  {t('authority.reportDetails')}
                 </h2>
               </div>
-              
+
               <div className="p-4">
                 {!selectedReport ? (
                   <div className="h-64 flex items-center justify-center text-neo-navy/40 border-[3px] border-dashed border-neo-navy/30">
                     <div className="text-center">
                       <Eye className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                      <p>Select a report to decrypt and review</p>
+                      <p>{t('authority.selectReportToDecrypt')}</p>
                     </div>
                   </div>
                 ) : decrypting ? (
                   <div className="h-64 flex items-center justify-center">
                     <div className="text-center">
                       <div className="w-12 h-12 border-4 border-neo-teal border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                      <p className="text-neo-navy/60">Decrypting with authority key...</p>
+                      <p className="text-neo-navy/60">{t('authority.decrypting')}</p>
                     </div>
                   </div>
                 ) : decryptedData?.error ? (
                   <NeoCard variant="maroon" className="p-4">
-                    <p className="text-neo-cream font-bold">Decryption failed: {decryptedData.error}</p>
+                    <p className="text-neo-cream font-bold">{t('authority.decryptionFailed')} {decryptedData.error}</p>
                   </NeoCard>
                 ) : decryptedData ? (
                   <div className="space-y-4">
                     {/* Decrypted Content */}
                     <div>
-                      <p className="text-xs uppercase font-bold text-neo-navy/60 mb-2">Decrypted Report</p>
+                      <p className="text-xs uppercase font-bold text-neo-navy/60 mb-2">{t('authority.decryptedReport')}</p>
                       <NeoCard className="p-4 max-h-40 overflow-y-auto">
                         <p className="whitespace-pre-wrap text-neo-navy">{decryptedData.decrypted}</p>
                       </NeoCard>
@@ -289,32 +291,32 @@ export default function Authority() {
                           <div className="w-8 h-8 bg-neo-orange flex items-center justify-center">
                             <Bot className="w-5 h-5 text-neo-navy" />
                           </div>
-                          <p className="font-bold text-neo-cream">AI Analysis (Gemini)</p>
+                          <p className="font-bold text-neo-cream">{t('authority.aiAnalysis')}</p>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-3 text-sm">
                           <div className="p-2 bg-neo-teal/20">
-                            <p className="text-neo-cream/60 text-xs">Spam</p>
+                            <p className="text-neo-cream/60 text-xs">{t('authority.spam')}</p>
                             <p className={`font-bold ${decryptedData.aiAnalysis.isSpam ? 'text-neo-maroon' : 'text-neo-teal'}`}>
                               {decryptedData.aiAnalysis.isSpam ? 'Yes' : 'No'}
                             </p>
                           </div>
                           <div className="p-2 bg-neo-teal/20">
-                            <p className="text-neo-cream/60 text-xs">Urgency</p>
+                            <p className="text-neo-cream/60 text-xs">{t('authority.urgency')}</p>
                             <p className="text-neo-orange font-bold">{decryptedData.aiAnalysis.urgencyScore}/10</p>
                           </div>
                           <div className="p-2 bg-neo-teal/20">
-                            <p className="text-neo-cream/60 text-xs">Category</p>
+                            <p className="text-neo-cream/60 text-xs">{t('authority.category')}</p>
                             <p className="text-neo-cream capitalize font-bold">{decryptedData.aiAnalysis.category}</p>
                           </div>
                           <div className="p-2 bg-neo-teal/20">
-                            <p className="text-neo-cream/60 text-xs">Credibility</p>
+                            <p className="text-neo-cream/60 text-xs">{t('authority.credibility')}</p>
                             <p className="text-neo-orange font-bold">{decryptedData.aiAnalysis.credibilityScore}/10</p>
                           </div>
                         </div>
-                        
+
                         <div className="mt-4 pt-3 border-t border-neo-teal/30">
-                          <p className="text-neo-cream/60 text-xs">Suggested Action</p>
+                          <p className="text-neo-cream/60 text-xs">{t('authority.suggestedAction')}</p>
                           <p className="capitalize font-bold text-neo-orange text-lg">{decryptedData.aiAnalysis.suggestedAction}</p>
                         </div>
                       </NeoCard>
@@ -323,7 +325,7 @@ export default function Authority() {
                     {/* Actions */}
                     {selectedReport.status === 'under_review' && (
                       <div className="flex gap-3 pt-2">
-                        <NeoButton 
+                        <NeoButton
                           onClick={handleVerify}
                           disabled={actionLoading}
                           variant="teal"
@@ -334,11 +336,11 @@ export default function Authority() {
                           ) : (
                             <>
                               <CheckCircle className="w-4 h-4 mr-2" />
-                              Verify & Reward
+                              {t('authority.verifyAndReward')}
                             </>
                           )}
                         </NeoButton>
-                        <NeoButton 
+                        <NeoButton
                           onClick={handleReject}
                           disabled={actionLoading}
                           variant="maroon"
@@ -346,7 +348,7 @@ export default function Authority() {
                           className="flex-1"
                         >
                           <XCircle className="w-4 h-4 mr-2" />
-                          Reject
+                          {t('authority.reject')}
                         </NeoButton>
                       </div>
                     )}
@@ -354,14 +356,14 @@ export default function Authority() {
                     {selectedReport.status === 'verified' && (
                       <NeoCard variant="teal" className="p-4 flex items-center gap-3">
                         <CheckCircle className="w-5 h-5 text-neo-cream" />
-                        <p className="font-bold text-neo-cream">This report has been verified and rewarded.</p>
+                        <p className="font-bold text-neo-cream">{t('authority.reportVerifiedRewarded')}</p>
                       </NeoCard>
                     )}
 
                     {selectedReport.status === 'rejected' && (
                       <NeoCard variant="maroon" className="p-4 flex items-center gap-3">
                         <XCircle className="w-5 h-5 text-neo-cream" />
-                        <p className="font-bold text-neo-cream">This report has been rejected.</p>
+                        <p className="font-bold text-neo-cream">{t('authority.reportRejected')}</p>
                       </NeoCard>
                     )}
                   </div>
