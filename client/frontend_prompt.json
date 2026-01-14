@@ -1,212 +1,517 @@
 {
-    "design_system": {
-        "theme": "glassmorphism",
-        "platform": "iOS-inspired",
-        "mood": "calm, secure, minimal, futuristic",
-        "color_palette": {
-            "background": "radial-gradient(circle at top, #0f172a, #020617)",
-            "glass": "rgba(255, 255, 255, 0.08)",
-            "glass_border": "rgba(255, 255, 255, 0.18)",
-            "primary": "#60a5fa",
-            "success": "#34d399",
-            "danger": "#f87171",
-            "text_primary": "#f8fafc",
-            "text_secondary": "#94a3b8"
+    "project": "Veil - Anonymous Reporting UI",
+    "version": "1.0.0",
+    "generatedFor": "Cursor (blindly paste this JSON into Cursor to generate the React + Tailwind frontend)",
+    "platform": "React (JavaScript) with Tailwind CSS configured",
+    "targetDevices": [
+        "iPhone (primary demo)",
+        "Responsive web (mobile-first)",
+        "Tablet",
+        "Desktop (condensed admin layout)"
+    ],
+    "designPrinciples": [
+        "Glassmorphism (Apple-style) — translucent frosted panels, subtle blur, soft shadows",
+        "Minimalist + bento grid: information presented in tidy cards that scale responsively",
+        "Micro-interactions: subtle transitions, focus animations, and tactile button feedback",
+        "Security-first UX: visible cryptography visualizations that educate but never overpromise",
+        "Accessible: high-contrast controls, keyboard navigable admin, screen-reader friendly labels"
+    ],
+    "style": {
+        "palette": {
+            "bgGradientStart": "#0f172a",
+            "bgGradientEnd": "#071026",
+            "glassTint": "rgba(255,255,255,0.06)",
+            "glassBorder": "rgba(255,255,255,0.08)",
+            "accentPrimary": "#4f46e5",
+            "accentSecondary": "#06b6d4",
+            "success": "#10b981",
+            "danger": "#ef4444",
+            "muted": "rgba(255,255,255,0.55)"
         },
-        "blur": "backdrop-blur-xl",
-        "radius": "rounded-2xl",
-        "shadow": "shadow-[0_20px_60px_rgba(0,0,0,0.45)]",
-        "font": "SF Pro / Inter",
-        "animation": "subtle, spring-based, no aggressive motion"
-    },
-    "global_layout": {
-        "max_width": "1200px",
-        "grid": "12-column bento grid",
-        "spacing": "generous, breathable",
-        "navbar": {
-            "style": "floating glass bar",
-            "items": [
-                "VEIL",
-                "Reports",
-                "Wallet",
-                "Security",
-                "Logout"
-            ]
+        "typography": {
+            "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue'",
+            "sizes": {
+                "xs": "0.75rem",
+                "sm": "0.875rem",
+                "base": "1rem",
+                "lg": "1.125rem",
+                "xl": "1.25rem",
+                "2xl": "1.5rem"
+            },
+            "weights": {
+                "regular": 400,
+                "medium": 500,
+                "semibold": 600,
+                "bold": 700
+            }
+        },
+        "tokens": {
+            "radius": "16px",
+            "cardPadding": "1rem",
+            "glassBlur": "12px",
+            "glassSaturation": "120%",
+            "shadow": "0 8px 30px rgba(2,6,23,0.6)"
         }
     },
-    "pages": [
+    "layout": {
+        "grid": {
+            "columnsMobile": 1,
+            "columnsTablet": 2,
+            "columnsDesktop": 3,
+            "gutter": "0.75rem"
+        },
+        "bentoGrid": {
+            "description": "Use a 3-column bento grid on desktop where hero occupies two rows, cards can span 1-2 columns; on mobile, it collapses into stacked cards.",
+            "example": "Hero (full width) -> 2x small cards -> activity list -> actions row"
+        }
+    },
+    "components": [
         {
-            "page": "Anonymous Report Session",
-            "route": "/report/:sessionId",
-            "purpose": "User submits encrypted anonymous report",
-            "layout": "centered bento layout",
-            "components": [
-                {
-                    "type": "hero_card",
-                    "title": "Anonymous & Encrypted Report",
-                    "subtitle": "This report is encrypted before it leaves your device. Even VEIL cannot read it.",
-                    "icon": "lock"
-                },
-                {
-                    "type": "text_area",
-                    "label": "Describe the incident",
-                    "placeholder": "Type what happened. Do not include names unless necessary.",
-                    "style": "glass-card large"
-                },
-                {
-                    "type": "bento_grid",
-                    "columns": 3,
-                    "cards": [
-                        {
-                            "title": "Client-side Encryption",
-                            "icon": "shield",
-                            "description": "Your report is encrypted in your browser using the authority’s public key."
-                        },
-                        {
-                            "title": "On-chain Commitment",
-                            "icon": "link",
-                            "description": "A cryptographic hash is immutably stored on Ethereum."
-                        },
-                        {
-                            "title": "Platform Blindness",
-                            "icon": "eye-off",
-                            "description": "VEIL servers cannot decrypt or read your report."
-                        }
-                    ]
-                },
-                {
-                    "type": "stake_selector",
-                    "label": "Stake to submit report",
-                    "default": "0.01 ETH",
-                    "note": "Returned if report is validated"
-                },
-                {
-                    "type": "primary_button",
-                    "label": "Encrypt & Submit Report",
-                    "action": "submitEncryptedReport"
-                }
+            "name": "AppShell",
+            "path": "src/components/AppShell.jsx",
+            "description": "Top-level shell that provides safe-area padding, background gradient, and glass overlay. Handles routing layout switch (client vs admin).",
+            "props": [
+                "children",
+                "role: 'client'|'admin'"
+            ],
+            "tailwindClasses": "min-h-screen bg-gradient-to-b from-[#0f172a] to-[#071026] text-white",
+            "behaviors": [
+                "Safe-area inset for iPhone notch via padding styles",
+                "Back/Close gestures on mobile: swipe-to-dismiss modals"
+            ],
+            "accessibility": "Sets main landmark role and ARIA labels for top nav"
+        },
+        {
+            "name": "TopNav",
+            "path": "src/components/TopNav.jsx",
+            "description": "Minimal top bar with app logo (glass badge), page title, and context actions (help, profile). On mobile it's compact and hides non-essential items behind a kebab menu.",
+            "props": [
+                "title",
+                "onHelp",
+                "profileMenuItems"
+            ],
+            "tailwindClasses": "backdrop-blur-md bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-3 flex items-center justify-between",
+            "microInteractions": "Logo press shows short encryption explainer modal"
+        },
+        {
+            "name": "GlassCard",
+            "path": "src/components/GlassCard.jsx",
+            "description": "Reusable frosted glass card used across UI. Supports header, body, footer slots and optional icon.",
+            "props": [
+                "header",
+                "children",
+                "footer",
+                "elevated:boolean",
+                "colSpan"
+            ],
+            "tailwind": "rounded-2xl p-4 backdrop-blur-[12px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)]",
+            "variants": [
+                "compact",
+                "hero",
+                "stat"
+            ],
+            "animation": "subtle translate-y on hover, smooth shadow ramp"
+        },
+        {
+            "name": "SessionLanding",
+            "path": "src/pages/SessionLanding.jsx",
+            "description": "Page a user lands on after clicking the session link (https://veil.app/report/<sessionId>). Core interaction: single message box, crypto visualization, action buttons (Send encrypted report).",
+            "layout": "Hero glass card at top with small explainers, below a bento grid that shows encryption visual, stake widget, preview of IPFS flow.",
+            "states": [
+                "idle",
+                "typing",
+                "encrypting",
+                "uploading",
+                "committed",
+                "error"
+            ],
+            "requiredComponents": [
+                "GlassCard",
+                "EncryptionViz",
+                "MessageComposer",
+                "StakeWidget",
+                "ProgressStepper"
+            ],
+            "keyInteractions": [
+                "Composer validates non-empty body and enforces length limit (5000 chars)",
+                "Send triggers client-side AES key generation, then encrypts and uploads to IPFS via backend pin endpoint",
+                "On successful upload, get CID, compute cidHash (sha256), and call smart contract commit endpoint via ethers provider"
             ]
         },
         {
-            "page": "User Dashboard",
-            "route": "/dashboard",
-            "purpose": "User views reports, rewards, reputation, and wallet",
-            "layout": "bento dashboard",
-            "components": [
-                {
-                    "type": "profile_card",
-                    "title": "Anonymous Identity",
-                    "fields": {
-                        "ens": "veil-9f3a.eth",
-                        "reputation": "★★★★☆",
-                        "status": "Anonymous & Active"
-                    }
-                },
-                {
-                    "type": "wallet_card",
-                    "title": "Wallet Overview",
-                    "fields": {
-                        "balance": "0.42 ETH",
-                        "rewards": "0.06 ETH",
-                        "staked": "0.01 ETH"
-                    },
-                    "actions": [
-                        "STAKE",
-                        "EXPORT KEY"
-                    ]
-                },
-                {
-                    "type": "reports_table",
-                    "title": "Your Reports",
-                    "columns": [
-                        "Report ID",
-                        "Status",
-                        "Stake",
-                        "Outcome"
-                    ],
-                    "rows": "dynamic"
-                },
-                {
-                    "type": "security_card",
-                    "title": "Security Status",
-                    "items": [
-                        "Client-side encryption enabled",
-                        "No identity linked",
-                        "Transport treated as hostile"
-                    ]
-                }
+            "name": "MessageComposer",
+            "path": "src/components/MessageComposer.jsx",
+            "description": "Simple message input with send button. Shows safety hints and toggles for 'include media' and 'anonymous stake'. Supports optional attachments (image only - auto encrypted).",
+            "props": [
+                "placeholder",
+                "maxLength",
+                "onSend"
+            ],
+            "uiRules": [
+                "Input is single large textarea with subtle rounded corners",
+                "Send button shows stake amount (0.01 ETH) and disabled state until message present",
+                "Show 'Estimated gas' inline after encryption step"
+            ],
+            "tailwindExample": "w-full rounded-xl p-3 min-h-[120px] resize-none bg-[rgba(255,255,255,0.02)]"
+        },
+        {
+            "name": "EncryptionViz",
+            "path": "src/components/EncryptionViz.jsx",
+            "description": "A lightweight, friendly visualization that shows the cryptographic steps in real-time (Generate AES key -> Encrypt -> Encrypt AES with Authority PubKey -> Upload to IPFS -> Commit hash on-chain). Animated dots and microcopy explain what is happening. Never reveal keys. Use icons and concise copy.",
+            "props": [
+                "status",
+                "small"
+            ],
+            "accessibility": "Text alternatives and aria-live region for status updates",
+            "implementationNotes": [
+                "Use Lottie-like micro-animation or CSS keyframe sequences for the 5-step flow",
+                "Provide optional 'How this works' collapsible for deep-dive (static educational copy)"
             ]
         },
         {
-            "page": "Authority Dashboard",
-            "route": "/authority",
-            "purpose": "Authorities review, decrypt, and validate reports",
-            "layout": "data-focused glass grid",
-            "components": [
-                {
-                    "type": "report_feed",
-                    "title": "Incoming Reports",
-                    "filters": [
-                        "Urgent",
-                        "New",
-                        "Flagged"
-                    ]
-                },
-                {
-                    "type": "report_detail_panel",
-                    "sections": [
-                        "Decrypted Content",
-                        "AI Risk Assessment",
-                        "Reporter Reputation",
-                        "On-chain Proof"
-                    ]
-                },
-                {
-                    "type": "action_buttons",
-                    "actions": [
-                        {
-                            "label": "Approve Report",
-                            "style": "success"
-                        },
-                        {
-                            "label": "Reject Report",
-                            "style": "danger"
-                        }
-                    ]
-                }
+            "name": "StakeWidget",
+            "path": "src/components/StakeWidget.jsx",
+            "description": "Shows stake amount, balance, quick-add of test ETH (for demo), and 'approve tx' CTA. Provides signage showing 'stake locked until authority verdict'.",
+            "props": [
+                "stakeAmount",
+                "onApprove",
+                "balance"
+            ],
+            "ui": "Compact chip showing 0.01 ETH and a disabled state when insufficient balance",
+            "tip": "Show a micro modal explaining why stake exists (prevents spam)."
+        },
+        {
+            "name": "ProgressStepper",
+            "path": "src/components/ProgressStepper.jsx",
+            "description": "Visual horizontal stepper used during the send/encrypt/commit flow. Steps: Compose → Encrypt → IPFS → Commit → Done.",
+            "props": [
+                "currentStep"
+            ],
+            "tailwindHint": "use flex gap to create equal segments, color accentPrimary for active step"
+        },
+        {
+            "name": "ClientDashboard",
+            "path": "src/pages/ClientDashboard.jsx",
+            "description": "Full user dashboard after the session: shows ongoing reports, rewards/penalties, balance, history, and quick actions. Use bento tiles: (A) Overview card, (B) Activity feed, (C) Staked balance + wallet controls, (D) Report list (collapsible), (E) Settings and export.",
+            "requiredFeatures": [
+                "Filter by status (pending/approved/invalid)",
+                "Search by sessionId or CID hash",
+                "Export report (only ciphertext) and export keys if user exported custody"
             ]
         },
         {
-            "page": "Silent Reporting Info",
-            "route": "/silent",
-            "purpose": "Explain no-message reporting",
-            "layout": "centered glass explainer",
-            "components": [
-                {
-                    "type": "headline",
-                    "text": "Report Without Sending a Message"
-                },
-                {
-                    "type": "steps",
-                    "items": [
-                        "Give missed calls to VEIL number",
-                        "Pattern determines report category",
-                        "Encrypted report is created automatically",
-                        "Committed on-chain without text or voice"
-                    ]
-                },
-                {
-                    "type": "highlight_card",
-                    "text": "Nothing was sent. The report still exists."
-                }
+            "name": "ReportListItem",
+            "path": "src/components/ReportListItem.jsx",
+            "description": "A single row entry for a report in lists. Shows thumbnail (category icon), status pill, stake amount, timestamp, and quick action buttons (View details, Export, Claim reward if applicable).",
+            "aria": "Each item is a button that opens a detail modal with aria-modal=true"
+        },
+        {
+            "name": "ReportDetailModal",
+            "path": "src/components/ReportDetailModal.jsx",
+            "description": "Modal that shows full report metadata (encrypted CID, timestamp, on-chain tx link, status). If the user has the AES key exported to the browser, allow 'Decrypt' button to reveal plaintext locally (never send to server).",
+            "securityNotes": [
+                "Decryption must happen in-memory only and cleared after modal closed",
+                "Offer 'copy as redacted' which masks phone numbers or PII patterns"
+            ]
+        },
+        {
+            "name": "AdminDashboard",
+            "path": "src/pages/AdminDashboard.jsx",
+            "description": "Authority/admin panel. Uses a dense grid: left nav for filters, center list of reports (decrypted content only when authority has keys), right panel for AI assistant results (spam score, duplicate score, urgency), action controls (Approve/Reject/RequestMore).",
+            "componentsUsed": [
+                "GlassCard",
+                "ReportTable",
+                "DecryptPane",
+                "AIInsightsPane"
+            ],
+            "behaviors": [
+                "Admin sees only decrypted content inside secure environment (simulated in hackathon)",
+                "Approve triggers refund+reward workflow via smart contract interaction",
+                "Reject triggers stake slash (smart contract call)"
+            ],
+            "accessibility": "Admin keyboard shortcuts: j/k to navigate report list, a to approve, r to reject"
+        },
+        {
+            "name": "ReportTable",
+            "path": "src/components/ReportTable.jsx",
+            "description": "Paginated table for admin with columns: CID hash, category, nullifier, stake, status, time, actions.",
+            "performance": "Use virtualization for >500 rows (react-window), lazy load decrypted payloads"
+        },
+        {
+            "name": "AIInsightsPane",
+            "path": "src/components/AIInsightsPane.jsx",
+            "description": "Shows spam probability, duplicate detection (similar CIDs), and urgency score. Important: pane is separated from encrypted storage — admin only sees decrypted data after explicit decryption. Show explanation snippets for each score (why flagged).",
+            "uiGuideline": "Cards with concise bullets; avoid revealing model internals"
+        },
+        {
+            "name": "SilentReportHandler",
+            "path": "src/components/SilentReportHandler.jsx",
+            "description": "UI representation for missed-call reports. Admin can view synthesized report metadata and see the 'missed call pattern' mapped to category. Provide a timeline visual showing Twilio logs.",
+            "demoHint": "For demo, allow toggling simulated missed-call patterns to show how reports are auto-created"
+        },
+        {
+            "name": "ProfilePanel",
+            "path": "src/components/ProfilePanel.jsx",
+            "description": "Shows user's pseudonymous profile: ENS-style name, reputation score (3-tier), export keys, and wallet controls (balance, withdraw if allowed).",
+            "visual": "Circular avatar generated from sessionId (deterministic but anonymous)"
+        },
+        {
+            "name": "ConfirmDialog",
+            "path": "src/components/ConfirmDialog.jsx",
+            "description": "Generic modal for critical actions (send stake, approve tx, export keys). Must be accessible and include keyboard focus trap.",
+            "props": [
+                "title",
+                "body",
+                "onConfirm",
+                "onCancel",
+                "danger:boolean"
             ]
         }
     ],
-    "ux_principles": [
-        "Never show raw cryptography",
-        "Explain safety visually, not verbally",
-        "No clutter, no walls of text",
-        "Everything feels calm and intentional",
-        "Security feels obvious, not scary"
-    ]
+    "pages": [
+        {
+            "route": "/report/:sessionId",
+            "name": "SessionLanding",
+            "hero": "Short headline: 'Secure anonymous report — sealed in your browser'",
+            "sections": [
+                "Hero GlassCard with short actions (Compose, Attach, Stake)",
+                "EncryptionViz + ProgressStepper",
+                "Bento grid: small explainers (Why this is private / How stake works / Silent-report demo),",
+                "Footer with legal copy and 'How it works' expandable"
+            ],
+            "mobileBehavior": "Hero collapses; composer pinned above keyboard with safe-area handling"
+        },
+        {
+            "route": "/dashboard/client",
+            "name": "ClientDashboard",
+            "seo": {
+                "title": "Your Veil Dashboard",
+                "description": "Track reports, balance and rewards"
+            },
+            "sections": [
+                "Overview card",
+                "Report feed",
+                "Wallet controls",
+                "Export keys"
+            ],
+            "userFlows": [
+                "View report -> open detail -> decrypt locally if available -> export cipher"
+            ]
+        },
+        {
+            "route": "/dashboard/admin",
+            "name": "AdminDashboard",
+            "seo": {
+                "title": "Veil Authority",
+                "description": "Approve or reject reports securely"
+            },
+            "sections": [
+                "Filters and nav",
+                "ReportTable",
+                "DecryptPane + AIInsightsPane"
+            ],
+            "security": [
+                "Admin area requires ephemeral authority keys to be present in browser; show clear banner when keys are not available"
+            ]
+        },
+        {
+            "route": "/demo/silent-report",
+            "name": "SilentReportDemo",
+            "description": "A demo page used to show missed-call reporting pipeline; includes a step-through timeline, Twilio logs simulator, and resulting synthesized encrypted report that gets committed to chain for the demo.",
+            "controls": [
+                "Simulate missed-call pattern",
+                "Generate synthetic report",
+                "Show IPFS CID and on-chain tx"
+            ]
+        }
+    ],
+    "flows": {
+        "clientFlow": {
+            "steps": [
+                "User clicks session link in WhatsApp/SMS",
+                "Browser creates ephemeral AES key (window.crypto.getRandomValues) and ephemeral keypair if needed",
+                "User composes message and presses Send",
+                "Client encrypts message with AES-GCM (or ChaCha20-Poly1305 via libsodium if available), generates nonce",
+                "Client encrypts AES key with Authority Public Key (libsodium/tweetnacl), packages {ciphertext, encryptedKey, nonce, metadata}",
+                "Client uploads JSON blob to backend /pin endpoint which pins to Pinata and returns CID",
+                "Client computes cidHash = sha256(CID) locally and calls backend to send transaction signature via ethers provider to commit cidHash on Sepolia",
+                "Smart contract stores cidHash, nullifier, and stake amount; emits event",
+                "Client receives commit confirmation and shows 'Committed' UI"
+            ],
+            "uiNotes": "Never show raw keys in UI. Show friendly microcopy: 'Encrypted on your device — only you can decrypt unless you export your key.'"
+        },
+        "adminFlow": {
+            "steps": [
+                "Authority loads admin dashboard and unlocks ephemeral private key (secure import) in the browser",
+                "Admin selects report -> decrypts using Authority private key which unwraps AES key and decrypts payload (in-browser only)",
+                "AIInsightsPane suggests classification; admin marks valid/invalid",
+                "If valid: contract call to refund+reward; if invalid: contract call to slash stake",
+                "Contract emits event; dashboards update"
+            ],
+            "uiNotes": "Show confirmation modals for approve/reject and an audit trail in the admin UI"
+        },
+        "silentReportFlow": {
+            "steps": [
+                "Twilio webhook logs missed call pattern -> backend pattern matcher maps to category",
+                "Backend synthesizes a minimal report (no PII) and performs the same client-side encryption flow on behalf of system (AES key generated server-side but encrypted with authority public key so platform cannot read) — hackathon-safe: make AES generation deterministic from sessionId + salt so it's reproducible in demo",
+                "Upload to Pinata and commit to chain",
+                "Admin decrypts like normal"
+            ],
+            "demoHint": "For the demo, show a timeline that proves no message was typed — only a missed call"
+        }
+    },
+    "apiContracts": [
+        {
+            "endpoint": "/api/pin",
+            "method": "POST",
+            "description": "Receives encrypted blob JSON from client, pins to Pinata using server Pinata key, returns CID and pin metadata.",
+            "bodyExample": {
+                "ciphertext": "base64...",
+                "encryptedKey": "base64...",
+                "nonce": "base64...",
+                "sessionId": "abcd1234",
+                "meta": {
+                    "category": "safety",
+                    "attachments": []
+                }
+            },
+            "responseExample": {
+                "cid": "bafy...",
+                "pinStatus": "pinned",
+                "cidHash": "0x..."
+            }
+        },
+        {
+            "endpoint": "/api/commit",
+            "method": "POST",
+            "description": "Backend helper that prepares an on-chain transaction (or an off-chain relay) to commit CID hash. For demo, prefer user-signed transaction via injected provider (Metamask / WalletConnect).",
+            "bodyExample": {
+                "cidHash": "0x...",
+                "sessionId": "abcd1234"
+            },
+            "responseExample": {
+                "txHash": "0x...",
+                "status": "submitted"
+            }
+        },
+        {
+            "endpoint": "/api/silent/simulate",
+            "method": "POST",
+            "description": "Admin/demo-only endpoint to synthesize missed-call reports for demo timelines.",
+            "bodyExample": {
+                "pattern": "missed-2-quick",
+                "sessionId": "demo123"
+            }
+        }
+    ],
+    "walletIntegration": {
+        "privyCustodial": {
+            "description": "Simulate Privy custodial wallets: server-managed but exportable. UI shows 'Export to self-custody' which downloads encrypted keystore protected by a passphrase.",
+            "uiNotes": [
+                "Show wallet panel in client dashboard with deterministic ENS-like pseudo (e.g., veil:0xabc...)",
+                "Actions: BALANCE, STAKE, REWARDS, EXPORT",
+                "When exporting, show clear warning about responsibility and steps to import into MetaMask"
+            ],
+            "hooks": [
+                "useWallet() -> {balance, stake, claimReward, exportKeystore}"
+            ]
+        },
+        "demoMode": "Auto-fund test ETH on first visit (for demo only) with a clearly visible demo banner"
+    },
+    "animations": [
+        {
+            "name": "glassHover",
+            "css": "transform: translateY(-6px); box-shadow: 0 12px 40px rgba(5,10,40,0.6); transition: transform 220ms cubic-bezier(0.22,1,0.36,1)"
+        },
+        {
+            "name": "stepPulse",
+            "css": "scale pulse and fade for active progress step; use prefers-reduced-motion to disable"
+        },
+        {
+            "name": "statusToast",
+            "css": "slide up from bottom with fade in and auto-dismiss after 4s"
+        }
+    ],
+    "accessibility": {
+        "focusManagement": "All modals trap focus. Escape closes modals. Buttons have keyboard focus outlines (tailwind focus-visible).",
+        "aria": "Every interactive element has aria-label. Use aria-live region for encryption and commit statuses.",
+        "contrast": "Ensure text on tinted glass meets 4.5:1 or provide alternate high-contrast mode in settings",
+        "reducedMotion": "Respect prefers-reduced-motion media query and reduce animations"
+    },
+    "testingAndQA": {
+        "unitTests": "Jest + React Testing Library: tests for MessageComposer validation, encryption flow mocks, and StakeWidget behavior.",
+        "e2e": "Playwright tests that simulate full client flow: click session link -> compose -> send -> see committed state.",
+        "securityChecks": [
+            "Verify no keys logged to console in production builds",
+            "Ensure 'decrypt' never triggers a POST to server in client code",
+            "CSP header recommended for production"
+        ]
+    },
+    "deliverablesForCursor": {
+        "files": [
+            "src/App.jsx",
+            "src/index.css (Tailwind directives + custom glass tokens)",
+            "src/pages/SessionLanding.jsx",
+            "src/pages/ClientDashboard.jsx",
+            "src/pages/AdminDashboard.jsx",
+            "src/components/* (GlassCard, TopNav, MessageComposer, EncryptionViz, StakeWidget, ProgressStepper, ReportListItem, ReportDetailModal, ConfirmDialog)",
+            "src/hooks/useWallet.js",
+            "src/utils/crypto.js (client-side encryption helpers using libsodium/tweetnacl fallback to WebCrypto AES-GCM)",
+            "tailwind.config.js (extends with custom colors and glass tokens)",
+            "public/manifest.json (iPhone tuned display-mode: standalone for demo)"
+        ],
+        "codeGuidelines": [
+            "Prefer functional components with hooks",
+            "Keep components small and composable",
+            "No server-side rendering required",
+            "Use React Router for routes",
+            "Use Context for wallet/session state",
+            "Use environment variables for Pinata keys (server only)",
+            "Include small README.md with run & demo steps"
+        ],
+        "stylingRules": [
+            "Use Tailwind utility classes; create component-level CSS only for complex animations",
+            "Create a single \"glass\" component token (CSS variables) and reference it across cards",
+            "All spacing should use Tailwind spacing scales"
+        ],
+        "namingConventions": {
+            "components": "PascalCase",
+            "files": "kebab-case for pages/components folders",
+            "cssClasses": "Tailwind utilities; use semantic classnames only when necessary"
+        }
+    },
+    "sampleData": {
+        "sessionId": "demo-session-0001",
+        "sampleEncryptedBlob": {
+            "ciphertext": "base64:ZmFrZV9jaXBoZXJ0ZXh0",
+            "encryptedKey": "base64:ZmFrZV9lbmNfa2V5",
+            "nonce": "base64:ZmFrZV9ub25jZQ==",
+            "meta": {
+                "category": "safety",
+                "attachments": []
+            }
+        },
+        "sampleCID": "bafybeigdyrzt...",
+        "sampleCidHash": "0xabc123...",
+        "sampleTxHash": "0xdeadbeef..."
+    },
+    "demoScriptForPresentation": {
+        "intro": "Open demo on iPhone. Show WhatsApp session link -> click -> composer loads",
+        "keyMoments": [
+            "Type short message and press Send — show EncryptionViz animating the steps",
+            "Show Pinata CID returned and explain 'hash committed to Sepolia'",
+            "Switch to Admin dashboard, import ephemeral authority key, decrypt report and approve -> show refund+reward tx",
+            "Trigger Silent-report simulation and show 'no typed message, yet report exists'"
+        ],
+        "closingLine": "We built a reporting primitive that keeps content private before transport and commits immutable evidence on-chain — and it works even when the user doesn't type a message."
+    },
+    "finalNotes": {
+        "doNotInclude": [
+            "ZK proofs",
+            "GPS tracking",
+            "Telegram integration (avoid for hackathon)"
+        ],
+        "optimizeFor": "Clarity for judges, compact demo, visual security explanation",
+        "askForNext": "If you want, I can generate the actual React files (component skeletons + Tailwind classes) from this JSON. Say 'generate code' and I will output the full file set ready to paste into your repo."
+    }
 }
