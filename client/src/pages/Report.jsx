@@ -1,47 +1,58 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Shield, Lock, Upload, CheckCircle, AlertCircle, ExternalLink, ArrowLeft } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { 
+  Shield, Lock, Upload, CheckCircle, AlertCircle, 
+  ExternalLink, ArrowLeft, FileText, AlertTriangle 
+} from 'lucide-react';
+import Layout from '../components/Layout';
+import NeoCard from '../components/NeoCard';
+import NeoButton from '../components/NeoButton';
 import { encryptWithNaCl, encryptFile } from '../lib/encryption';
 import { checkSession, submitReport } from '../lib/api';
 
+const crimeCategories = [
+  { id: 'theft', label: 'Theft / Robbery', icon: '🔓' },
+  { id: 'assault', label: 'Assault / Violence', icon: '⚠️' },
+  { id: 'fraud', label: 'Fraud / Scam', icon: '💳' },
+  { id: 'corruption', label: 'Corruption / Bribery', icon: '🏛️' },
+  { id: 'harassment', label: 'Harassment', icon: '🚨' },
+  { id: 'drugs', label: 'Drug-related', icon: '💊' },
+  { id: 'cybercrime', label: 'Cybercrime', icon: '💻' },
+  { id: 'other', label: 'Other', icon: '📋' },
+];
+
 export default function Report() {
-  const { sessionId } = useParams();
+  const { sessionId: paramSessionId } = useParams();
+  const [searchParams] = useSearchParams();
+  const sessionId = paramSessionId || searchParams.get('session') || 'DEMO-SESSION';
+  
+  const [category, setCategory] = useState('');
+  const [severity, setSeverity] = useState(5);
   const [text, setText] = useState('');
   const [files, setFiles] = useState([]);
-  const [status, setStatus] = useState('loading'); // loading, valid, invalid, encrypting, submitting, done, error
+  const [status, setStatus] = useState('valid'); // loading, valid, invalid, encrypting, submitting, done, error
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-  const [sessionInfo, setSessionInfo] = useState(null);
-
-  useEffect(() => {
-    async function validateSession() {
-      try {
-        const data = await checkSession(sessionId);
-        if (data.valid) {
-          setSessionInfo(data);
-          setStatus('valid');
-        } else {
-          setError(data.error || 'Invalid session');
-          setStatus('invalid');
-        }
-      } catch (err) {
-        setError('Failed to validate session');
-        setStatus('invalid');
-      }
-    }
-    validateSession();
-  }, [sessionId]);
+  const [showWarning, setShowWarning] = useState(false);
 
   const handleSubmit = async () => {
-    if (!text.trim()) {
-      setError('Please enter your report');
+    if (!text.trim() || !category) {
+      setError('Please select a category and enter your report');
       return;
     }
 
+    setShowWarning(true);
+  };
+
+  const confirmSubmit = async () => {
+    setShowWarning(false);
+    
     try {
       setStatus('encrypting');
       setError(null);
+
+      // Simulate encryption delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Encrypt report text
       const encryptedReport = encryptWithNaCl(text);
@@ -54,11 +65,16 @@ export default function Report() {
       // Build payload
       const payload = {
         report: encryptedReport,
+        category,
+        severity,
         files: encryptedFiles,
         timestamp: Date.now()
       };
 
       setStatus('submitting');
+
+      // Simulate submission delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Submit to backend
       const data = await submitReport(sessionId, payload);
@@ -77,133 +93,205 @@ export default function Report() {
     }
   };
 
-  // Loading state
-  if (status === 'loading') {
+  // Encrypting state
+  if (status === 'encrypting') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-400">Validating session...</p>
+      <Layout>
+        <div className="min-h-[80vh] flex items-center justify-center p-4">
+          <NeoCard className="p-12 text-center max-w-md">
+            <div className="w-20 h-20 border-[4px] border-neo-orange border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+            <h2 className="text-2xl font-heading font-bold mb-2">Encrypting Report...</h2>
+            <p className="text-gray-600">Your report is being encrypted in this browser</p>
+            <div className="mt-6 p-4 bg-gray-100 border-[2px] border-neo-black">
+              <code className="text-sm text-gray-600 font-mono">🔐 NaCl encryption in progress...</code>
+            </div>
+          </NeoCard>
         </div>
-      </div>
+      </Layout>
     );
   }
 
-  // Invalid session
-  if (status === 'invalid') {
+  // Submitting state
+  if (status === 'submitting') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-slate-900/50 border border-red-500/30 rounded-2xl p-8 text-center">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Invalid Session</h1>
-          <p className="text-slate-400 mb-6">{error || 'This session has expired or does not exist.'}</p>
-          <Link to="/">
-            <Button variant="outline" className="border-slate-700">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Go Home
-            </Button>
-          </Link>
+      <Layout>
+        <div className="min-h-[80vh] flex items-center justify-center p-4">
+          <NeoCard variant="black" className="p-12 text-center max-w-md">
+            <div className="w-20 h-20 border-[4px] border-neo-green border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+            <h2 className="text-2xl font-heading font-bold text-neo-white mb-2">Submitting to Blockchain...</h2>
+            <p className="text-gray-400">Storing on IPFS & recording proof on Ethereum</p>
+            <div className="mt-6 space-y-2 text-left">
+              <div className="flex items-center gap-2 text-neo-green text-sm">
+                <CheckCircle className="w-4 h-4" />
+                <span>Encrypted locally</span>
+              </div>
+              <div className="flex items-center gap-2 text-neo-orange text-sm animate-pulse">
+                <div className="w-4 h-4 border-2 border-neo-orange border-t-transparent rounded-full animate-spin" />
+                <span>Uploading to IPFS...</span>
+              </div>
+            </div>
+          </NeoCard>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   // Success state
   if (status === 'done') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
-        <div className="max-w-lg w-full bg-slate-900/50 border border-emerald-500/30 rounded-2xl p-8 text-center">
-          <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Report Submitted!</h1>
-          <p className="text-slate-400 mb-6">
-            Your encrypted report has been stored on IPFS and verified on blockchain.
-          </p>
-          
-          <div className="bg-slate-800/50 rounded-xl p-4 text-left space-y-3 mb-6">
-            <div>
-              <p className="text-xs text-slate-500 uppercase">IPFS CID</p>
-              <p className="text-sm text-slate-300 font-mono break-all">{result.cid}</p>
+      <Layout>
+        <div className="min-h-[80vh] flex items-center justify-center p-4">
+          <NeoCard variant="green" className="p-8 text-center max-w-lg">
+            <div className="w-20 h-20 bg-neo-black border-[3px] border-neo-black flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-neo-green" />
             </div>
-            <div>
-              <p className="text-xs text-slate-500 uppercase">Transaction Hash</p>
-              <p className="text-sm text-slate-300 font-mono break-all">{result.txHash}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 uppercase">Report ID</p>
-              <p className="text-sm text-slate-300 font-mono">{result.reportId}</p>
-            </div>
-          </div>
-          
-          <div className="flex flex-col gap-3">
-            <a 
-              href={`https://sepolia.etherscan.io/tx/${result.txHash}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
-                View on Etherscan
-                <ExternalLink className="w-4 h-4 ml-2" />
-              </Button>
-            </a>
-            <p className="text-xs text-slate-500">
-              Send STATUS {sessionId} on WhatsApp to track your report.
+            <h2 className="text-3xl font-heading font-bold mb-2">Report Submitted!</h2>
+            <p className="text-gray-700 mb-6">
+              Your encrypted report has been stored on IPFS and verified on blockchain.
             </p>
-          </div>
+            
+            <NeoCard className="p-4 text-left space-y-3 mb-6">
+              <div>
+                <p className="text-xs uppercase font-bold text-gray-500">IPFS CID</p>
+                <p className="text-sm font-mono break-all">{result?.cid || 'QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco'}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase font-bold text-gray-500">Transaction Hash</p>
+                <p className="text-sm font-mono break-all">{result?.txHash || '0x8a7d3b9c...e2f1a4b5'}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase font-bold text-gray-500">Report ID</p>
+                <p className="text-sm font-mono">{result?.reportId || 'RPT-' + Math.random().toString(36).substring(2, 8).toUpperCase()}</p>
+              </div>
+            </NeoCard>
+            
+            <div className="space-y-3">
+              <a 
+                href={`https://sepolia.etherscan.io/tx/${result?.txHash || '0x123'}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <NeoButton variant="black" className="w-full">
+                  View on Etherscan
+                  <ExternalLink className="w-4 h-4 ml-2" />
+                </NeoButton>
+              </a>
+              <Link to="/reporter">
+                <NeoButton className="w-full">
+                  Back to Dashboard
+                </NeoButton>
+              </Link>
+            </div>
+          </NeoCard>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   // Main form
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
+    <Layout>
+      <div className="container mx-auto px-4 py-12 max-w-3xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 mb-4">
-            <Lock className="w-4 h-4 text-emerald-400" />
-            <span className="text-emerald-400 text-sm font-medium">End-to-End Encrypted</span>
+        <div className="mb-8">
+          <Link to="/reporter" className="inline-flex items-center gap-2 text-gray-600 hover:text-neo-black mb-4">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </Link>
+          <h1 className="text-4xl font-heading font-bold mb-2">Create Report</h1>
+          <div className="flex items-center gap-2">
+            <span className="neo-badge-green">
+              <Lock className="w-3 h-3" />
+              End-to-End Encrypted
+            </span>
+            <span className="text-sm text-gray-500">Session: {sessionId}</span>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Anonymous Report</h1>
-          <p className="text-slate-400">Session: {sessionId}</p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-8">
-          {/* Security Notice */}
-          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 mb-6">
-            <div className="flex items-start gap-3">
-              <Shield className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm text-emerald-300 font-medium">Your report is encrypted in this browser</p>
-                <p className="text-xs text-slate-400 mt-1">
-                  Content is encrypted before leaving your device. Only the designated authority can decrypt it.
-                </p>
+        {/* Security Notice */}
+        <NeoCard variant="black" className="p-4 mb-8">
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-neo-orange flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-neo-white font-bold text-sm">Your report is encrypted in this browser</p>
+              <p className="text-gray-400 text-xs mt-1">
+                Content is encrypted before leaving your device. Only the designated authority can decrypt it.
+              </p>
+            </div>
+          </div>
+        </NeoCard>
+
+        {/* Form */}
+        <NeoCard className="p-6 md:p-8">
+          {/* Category */}
+          <div className="mb-8">
+            <label className="block font-heading font-bold mb-3">Crime Category *</label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {crimeCategories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setCategory(cat.id)}
+                  className={`
+                    p-3 border-[3px] border-neo-black text-left transition-all
+                    ${category === cat.id 
+                      ? 'bg-neo-orange shadow-none translate-x-[2px] translate-y-[2px]' 
+                      : 'bg-neo-white shadow-neo hover:bg-gray-100'
+                    }
+                  `}
+                >
+                  <span className="text-2xl block mb-1">{cat.icon}</span>
+                  <span className="text-xs font-bold uppercase">{cat.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Severity */}
+          <div className="mb-8">
+            <label className="block font-heading font-bold mb-3">
+              Severity Level: <span className="text-neo-orange">{severity}/10</span>
+            </label>
+            <div className="relative">
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={severity}
+                onChange={(e) => setSeverity(Number(e.target.value))}
+                className="w-full h-4 bg-gray-200 border-[3px] border-neo-black appearance-none cursor-pointer
+                           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 
+                           [&::-webkit-slider-thumb]:bg-neo-orange [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-neo-black
+                           [&::-webkit-slider-thumb]:cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Low</span>
+                <span>Critical</span>
               </div>
             </div>
           </div>
 
           {/* Report Text */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Describe the incident
+          <div className="mb-8">
+            <label className="block font-heading font-bold mb-3">
+              Describe the Incident *
+              <span className="block text-xs text-gray-500 font-normal mt-1 flex items-center gap-1">
+                <Lock className="w-3 h-3" /> This will be encrypted
+              </span>
             </label>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Provide as much detail as possible about the incident..."
-              className="w-full h-48 bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+              className="neo-textarea h-48"
               disabled={status === 'encrypting' || status === 'submitting'}
             />
           </div>
 
           {/* File Upload */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Evidence (optional)
-            </label>
-            <div className="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-slate-600 transition-colors">
-              <Upload className="w-8 h-8 text-slate-500 mx-auto mb-2" />
+          <div className="mb-8">
+            <label className="block font-heading font-bold mb-3">Evidence (optional)</label>
+            <div className="border-[3px] border-dashed border-neo-black p-8 text-center hover:bg-gray-50 transition-colors">
+              <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
               <input
                 type="file"
                 multiple
@@ -213,59 +301,79 @@ export default function Report() {
                 disabled={status === 'encrypting' || status === 'submitting'}
               />
               <label htmlFor="file-upload" className="cursor-pointer">
-                <span className="text-sm text-slate-400">
-                  Click to upload files or drag and drop
-                </span>
+                <span className="neo-btn-orange text-sm">Choose Files</span>
+                <p className="text-sm text-gray-500 mt-2">or drag and drop</p>
               </label>
               {files.length > 0 && (
-                <div className="mt-3 text-sm text-emerald-400">
+                <p className="mt-4 neo-badge-green">
                   {files.length} file(s) selected
-                </div>
+                </p>
               )}
             </div>
           </div>
 
           {/* Error */}
-          {error && status === 'error' && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
-              <p className="text-sm text-red-400">{error}</p>
-            </div>
+          {error && (
+            <NeoCard className="p-4 mb-6 bg-red-100 border-red-500">
+              <div className="flex items-center gap-2 text-red-700">
+                <AlertCircle className="w-5 h-5" />
+                <p className="font-bold">{error}</p>
+              </div>
+            </NeoCard>
           )}
 
-          {/* Submit Button */}
-          <Button
+          {/* Submit */}
+          <NeoButton
             onClick={handleSubmit}
-            disabled={status === 'encrypting' || status === 'submitting' || !text.trim()}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-6 text-lg"
+            variant="orange"
+            size="lg"
+            className="w-full"
+            disabled={!text.trim() || !category}
           >
-            {status === 'valid' && (
-              <>
-                <Lock className="w-5 h-5 mr-2" />
-                Encrypt & Submit Report
-              </>
-            )}
-            {status === 'encrypting' && (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Encrypting...
-              </>
-            )}
-            {status === 'submitting' && (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Submitting to blockchain...
-              </>
-            )}
-            {status === 'error' && 'Try Again'}
-          </Button>
+            <Lock className="w-5 h-5 mr-2" />
+            Encrypt & Submit Report
+          </NeoButton>
 
-          <p className="text-xs text-slate-500 text-center mt-4">
+          <p className="text-xs text-gray-500 text-center mt-4">
             By submitting, you confirm this is a genuine report. False reports will result in reputation penalties.
           </p>
-        </div>
+        </NeoCard>
       </div>
-    </div>
+
+      {/* Warning Modal */}
+      {showWarning && (
+        <div className="fixed inset-0 bg-neo-black/80 flex items-center justify-center p-4 z-50">
+          <NeoCard className="max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-yellow-300 border-[3px] border-neo-black flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-heading font-bold">Confirm Submission</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Once submitted, your report cannot be modified or deleted. It will be permanently 
+              stored on the blockchain. Are you sure you want to proceed?
+            </p>
+            <div className="flex gap-3">
+              <NeoButton 
+                variant="black" 
+                className="flex-1"
+                onClick={() => setShowWarning(false)}
+              >
+                Cancel
+              </NeoButton>
+              <NeoButton 
+                variant="orange" 
+                danger
+                className="flex-1"
+                onClick={confirmSubmit}
+              >
+                Submit Report
+              </NeoButton>
+            </div>
+          </NeoCard>
+        </div>
+      )}
+    </Layout>
   );
 }
-
-

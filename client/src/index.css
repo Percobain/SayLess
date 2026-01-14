@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,53 +7,183 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 0 0% 0%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 0 0% 0%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
-    --radius: 0.5rem;
+    --popover-foreground: 0 0% 0%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 18 100% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 0%;
+    --input: 0 0% 0%;
+    --ring: 0 0% 0%;
+    --radius: 0px;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-neo-black;
   }
+  
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    @apply bg-neo-white text-neo-black antialiased font-body;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold;
+    font-family: 'Space Grotesk', sans-serif;
   }
 }
 
-/* Custom scrollbar for dark UI */
+@layer components {
+  /* Neo-Brutalist Card */
+  .neo-card {
+    @apply bg-neo-white border-[3px] border-neo-black shadow-neo;
+  }
+  
+  .neo-card-orange {
+    @apply bg-neo-orange border-[3px] border-neo-black shadow-neo text-neo-black;
+  }
+  
+  .neo-card-green {
+    @apply bg-neo-green border-[3px] border-neo-black shadow-neo text-neo-black;
+  }
+  
+  .neo-card-purple {
+    @apply bg-neo-purple border-[3px] border-neo-black shadow-neo text-neo-white;
+  }
+  
+  .neo-card-black {
+    @apply bg-neo-black border-[3px] border-neo-black shadow-neo-lg text-neo-white;
+  }
+
+  /* Neo-Brutalist Button */
+  .neo-btn {
+    @apply inline-flex items-center justify-center px-6 py-3 
+           bg-neo-white border-[3px] border-neo-black shadow-neo
+           font-heading font-bold text-neo-black uppercase tracking-wide
+           transition-all duration-150
+           hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-neo-hover
+           active:translate-x-[4px] active:translate-y-[4px] active:shadow-none
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-neo;
+  }
+  
+  .neo-btn-orange {
+    @apply neo-btn bg-neo-orange text-neo-black;
+  }
+  
+  .neo-btn-green {
+    @apply neo-btn bg-neo-green text-neo-black;
+  }
+  
+  .neo-btn-purple {
+    @apply neo-btn bg-neo-purple text-neo-white;
+  }
+  
+  .neo-btn-black {
+    @apply neo-btn bg-neo-black text-neo-white;
+  }
+
+  /* Neo-Brutalist Input */
+  .neo-input {
+    @apply w-full px-4 py-3 bg-neo-white border-[3px] border-neo-black 
+           font-body text-neo-black placeholder:text-gray-400
+           focus:outline-none focus:ring-0 focus:shadow-neo-lg
+           transition-shadow duration-150;
+  }
+  
+  .neo-textarea {
+    @apply neo-input resize-none;
+  }
+
+  /* Neo-Brutalist Badge */
+  .neo-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 
+           border-[2px] border-neo-black font-heading font-bold text-sm uppercase;
+  }
+  
+  .neo-badge-orange {
+    @apply neo-badge bg-neo-orange text-neo-black;
+  }
+  
+  .neo-badge-green {
+    @apply neo-badge bg-neo-green text-neo-black;
+  }
+  
+  .neo-badge-purple {
+    @apply neo-badge bg-neo-purple text-neo-white;
+  }
+
+  /* Animated Alert Banner */
+  .neo-alert-banner {
+    @apply w-full bg-neo-orange border-y-[3px] border-neo-black py-2 overflow-hidden;
+  }
+  
+  .neo-alert-text {
+    @apply inline-block whitespace-nowrap font-heading font-bold text-neo-black uppercase tracking-wider animate-marquee;
+  }
+
+  /* Status Badges */
+  .neo-status {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 border-[2px] border-neo-black font-bold text-xs uppercase;
+  }
+  
+  .neo-status-pending {
+    @apply neo-status bg-yellow-300;
+  }
+  
+  .neo-status-success {
+    @apply neo-status bg-neo-green;
+  }
+  
+  .neo-status-error {
+    @apply neo-status bg-red-400;
+  }
+  
+  .neo-status-info {
+    @apply neo-status bg-neo-purple text-neo-white;
+  }
+
+  /* Shake Animation for Dangerous Actions */
+  .neo-danger:hover {
+    @apply animate-shake;
+  }
+
+  /* Section Divider */
+  .neo-divider {
+    @apply w-full h-[3px] bg-neo-black;
+  }
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  @apply bg-neo-white border-l-[3px] border-neo-black;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
+  @apply bg-neo-black;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  @apply bg-gray-800;
+}
+
+/* Selection */
+::selection {
+  @apply bg-neo-orange text-neo-black;
 }

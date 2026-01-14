@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Shield, ArrowLeft, RefreshCw, Eye, CheckCircle, XCircle, 
-  Clock, AlertTriangle, ExternalLink, Bot, FileText
+  Clock, AlertTriangle, ExternalLink, Bot, FileText, Filter
 } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import Layout from '../components/Layout';
+import NeoCard from '../components/NeoCard';
+import NeoButton from '../components/NeoButton';
 import { getAuthorityReports, decryptReport, verifyReport, rejectReport, getAuthorityStats } from '../lib/api';
 
 export default function Authority() {
@@ -15,6 +17,7 @@ export default function Authority() {
   const [decryptedData, setDecryptedData] = useState(null);
   const [decrypting, setDecrypting] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [filter, setFilter] = useState('all');
 
   const fetchData = async () => {
     setLoading(true);
@@ -41,6 +44,8 @@ export default function Authority() {
     setDecrypting(true);
     
     try {
+      // Simulate decryption delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const data = await decryptReport(report._id);
       setDecryptedData(data);
     } catch (err) {
@@ -85,107 +90,119 @@ export default function Authority() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'under_review': { bg: 'bg-yellow-500/10', text: 'text-yellow-400', icon: Clock },
-      'verified': { bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: CheckCircle },
-      'rejected': { bg: 'bg-red-500/10', text: 'text-red-400', icon: XCircle },
-      'pending': { bg: 'bg-slate-500/10', text: 'text-slate-400', icon: Clock }
+      'under_review': { bg: 'bg-yellow-300', label: 'Under Review', icon: Clock },
+      'verified': { bg: 'bg-neo-green', label: 'Verified', icon: CheckCircle },
+      'rejected': { bg: 'bg-red-400', label: 'Rejected', icon: XCircle },
+      'pending': { bg: 'bg-gray-300', label: 'Pending', icon: Clock }
     };
     const badge = badges[status] || badges.pending;
     const Icon = badge.icon;
     
     return (
-      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${badge.bg} ${badge.text}`}>
+      <span className={`neo-status ${badge.bg}`}>
         <Icon className="w-3 h-3" />
-        {status}
+        {badge.label}
       </span>
     );
   };
 
+  const filteredReports = filter === 'all' 
+    ? reports 
+    : reports.filter(r => r.status === filter);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      {/* Header */}
-      <div className="border-b border-slate-800">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2">
-              <Shield className="w-6 h-6 text-emerald-400" />
-              <span className="text-xl font-bold text-white">Authority Dashboard</span>
-            </div>
+    <Layout>
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-4xl font-heading font-bold mb-2">Authority Dashboard</h1>
+            <p className="text-gray-600">Review and verify encrypted crime reports</p>
           </div>
-          <Button onClick={fetchData} variant="outline" size="sm" className="border-slate-700">
+          <NeoButton onClick={fetchData}>
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
-          </Button>
+          </NeoButton>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-8">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
-            <p className="text-2xl font-bold text-white">{stats.total}</p>
-            <p className="text-sm text-slate-400">Total Reports</p>
-          </div>
-          <div className="bg-slate-900/50 border border-yellow-500/20 rounded-xl p-4">
-            <p className="text-2xl font-bold text-yellow-400">{stats.pending}</p>
-            <p className="text-sm text-slate-400">Pending Review</p>
-          </div>
-          <div className="bg-slate-900/50 border border-emerald-500/20 rounded-xl p-4">
-            <p className="text-2xl font-bold text-emerald-400">{stats.verified}</p>
-            <p className="text-sm text-slate-400">Verified</p>
-          </div>
-          <div className="bg-slate-900/50 border border-red-500/20 rounded-xl p-4">
-            <p className="text-2xl font-bold text-red-400">{stats.rejected}</p>
-            <p className="text-sm text-slate-400">Rejected</p>
-          </div>
+          <NeoCard className="p-4 text-center">
+            <p className="text-3xl font-heading font-bold">{stats.total}</p>
+            <p className="text-sm text-gray-600">Total Reports</p>
+          </NeoCard>
+          <NeoCard variant="orange" className="p-4 text-center">
+            <p className="text-3xl font-heading font-bold">{stats.pending}</p>
+            <p className="text-sm">Pending Review</p>
+          </NeoCard>
+          <NeoCard variant="green" className="p-4 text-center">
+            <p className="text-3xl font-heading font-bold">{stats.verified}</p>
+            <p className="text-sm">Verified</p>
+          </NeoCard>
+          <NeoCard className="p-4 text-center bg-red-100">
+            <p className="text-3xl font-heading font-bold text-red-600">{stats.rejected}</p>
+            <p className="text-sm text-gray-600">Rejected</p>
+          </NeoCard>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Reports List */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-slate-800">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <FileText className="w-5 h-5 text-slate-400" />
+          <NeoCard className="overflow-hidden">
+            <div className="p-4 border-b-[3px] border-neo-black bg-gray-100 flex items-center justify-between">
+              <h2 className="font-heading font-bold text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5" />
                 Reports
               </h2>
+              <div className="flex gap-2">
+                {['all', 'under_review', 'verified', 'rejected'].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`
+                      px-3 py-1 text-xs font-bold uppercase border-[2px] border-neo-black
+                      ${filter === f ? 'bg-neo-black text-neo-white' : 'bg-neo-white hover:bg-gray-100'}
+                    `}
+                  >
+                    {f === 'all' ? 'All' : f.replace('_', ' ')}
+                  </button>
+                ))}
+              </div>
             </div>
             
-            <div className="divide-y divide-slate-800 max-h-[600px] overflow-y-auto">
+            <div className="max-h-[500px] overflow-y-auto divide-y-[2px] divide-neo-black">
               {loading ? (
                 <div className="p-8 text-center">
-                  <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                  <p className="text-slate-400">Loading reports...</p>
+                  <div className="w-10 h-10 border-4 border-neo-orange border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-gray-500">Loading reports...</p>
                 </div>
-              ) : reports.length === 0 ? (
-                <div className="p-8 text-center">
-                  <p className="text-slate-400">No reports yet</p>
+              ) : filteredReports.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  No reports found
                 </div>
               ) : (
-                reports.map((report) => (
+                filteredReports.map((report) => (
                   <div 
                     key={report._id}
-                    className={`p-4 hover:bg-slate-800/50 cursor-pointer transition-colors ${
-                      selectedReport?._id === report._id ? 'bg-slate-800/50' : ''
-                    }`}
+                    className={`
+                      p-4 cursor-pointer transition-colors
+                      ${selectedReport?._id === report._id 
+                        ? 'bg-neo-orange' 
+                        : 'hover:bg-gray-50'
+                      }
+                    `}
                     onClick={() => handleDecrypt(report)}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-medium text-white">Session: {report.sessionId}</p>
-                        <p className="text-xs text-slate-500">
+                        <p className="font-bold">Session: {report.sessionId}</p>
+                        <p className="text-xs text-gray-500">
                           {new Date(report.createdAt).toLocaleString()}
                         </p>
                       </div>
                       {getStatusBadge(report.status)}
                     </div>
                     
-                    <div className="flex items-center gap-4 text-xs text-slate-400">
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span>Rep: {report.reporterReputation || 0}</span>
                       {report.txHash && (
                         <a 
@@ -193,7 +210,7 @@ export default function Authority() {
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="hover:text-emerald-400 flex items-center gap-1"
+                          className="hover:text-neo-orange flex items-center gap-1"
                         >
                           TX <ExternalLink className="w-3 h-3" />
                         </a>
@@ -203,136 +220,128 @@ export default function Authority() {
                 ))
               )}
             </div>
-          </div>
+          </NeoCard>
 
           {/* Decrypt Panel */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-slate-800">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <Eye className="w-5 h-5 text-slate-400" />
+          <NeoCard className="overflow-hidden">
+            <div className="p-4 border-b-[3px] border-neo-black bg-gray-100">
+              <h2 className="font-heading font-bold text-lg flex items-center gap-2">
+                <Eye className="w-5 h-5" />
                 Report Details
               </h2>
             </div>
             
             <div className="p-4">
               {!selectedReport ? (
-                <div className="h-64 flex items-center justify-center text-slate-500">
+                <div className="h-64 flex items-center justify-center text-gray-400 border-[3px] border-dashed border-gray-300">
                   Select a report to decrypt and review
                 </div>
               ) : decrypting ? (
                 <div className="h-64 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                    <p className="text-slate-400">Decrypting...</p>
+                    <div className="w-10 h-10 border-4 border-neo-green border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    <p className="text-gray-500">Decrypting...</p>
                   </div>
                 </div>
               ) : decryptedData?.error ? (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
-                  <p className="text-red-400">Decryption failed: {decryptedData.error}</p>
-                </div>
+                <NeoCard className="p-4 bg-red-100">
+                  <p className="text-red-600 font-bold">Decryption failed: {decryptedData.error}</p>
+                </NeoCard>
               ) : decryptedData ? (
                 <div className="space-y-4">
                   {/* Decrypted Content */}
                   <div>
-                    <p className="text-xs text-slate-500 uppercase mb-2">Decrypted Report</p>
-                    <div className="bg-slate-800/50 rounded-xl p-4 max-h-48 overflow-y-auto">
-                      <p className="text-white whitespace-pre-wrap">{decryptedData.decrypted}</p>
-                    </div>
+                    <p className="text-xs uppercase font-bold text-gray-500 mb-2">Decrypted Report</p>
+                    <NeoCard className="p-4 bg-gray-50 max-h-40 overflow-y-auto">
+                      <p className="whitespace-pre-wrap">{decryptedData.decrypted}</p>
+                    </NeoCard>
                   </div>
 
                   {/* AI Analysis */}
                   {decryptedData.aiAnalysis && (
-                    <div className="bg-purple-500/5 border border-purple-500/20 rounded-xl p-4">
+                    <NeoCard variant="purple" className="p-4">
                       <div className="flex items-center gap-2 mb-3">
-                        <Bot className="w-5 h-5 text-purple-400" />
-                        <p className="text-sm font-medium text-purple-300">AI Analysis (Gemini)</p>
+                        <Bot className="w-5 h-5" />
+                        <p className="font-bold">AI Analysis (Gemini)</p>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <p className="text-slate-500">Spam</p>
-                          <p className={decryptedData.aiAnalysis.isSpam ? 'text-red-400' : 'text-emerald-400'}>
+                          <p className="text-gray-300 text-xs">Spam</p>
+                          <p className={decryptedData.aiAnalysis.isSpam ? 'text-red-300' : 'text-neo-green'}>
                             {decryptedData.aiAnalysis.isSpam ? 'Yes' : 'No'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Urgency</p>
-                          <p className="text-white">{decryptedData.aiAnalysis.urgencyScore}/10</p>
+                          <p className="text-gray-300 text-xs">Urgency</p>
+                          <p>{decryptedData.aiAnalysis.urgencyScore}/10</p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Category</p>
-                          <p className="text-white capitalize">{decryptedData.aiAnalysis.category}</p>
+                          <p className="text-gray-300 text-xs">Category</p>
+                          <p className="capitalize">{decryptedData.aiAnalysis.category}</p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Credibility</p>
-                          <p className="text-white">{decryptedData.aiAnalysis.credibilityScore}/10</p>
+                          <p className="text-gray-300 text-xs">Credibility</p>
+                          <p>{decryptedData.aiAnalysis.credibilityScore}/10</p>
                         </div>
                       </div>
                       
-                      <div className="mt-3 pt-3 border-t border-purple-500/20">
-                        <p className="text-slate-500 text-xs">Suggested Action</p>
-                        <p className="text-purple-300 capitalize">{decryptedData.aiAnalysis.suggestedAction}</p>
+                      <div className="mt-3 pt-3 border-t border-neo-white/20">
+                        <p className="text-gray-300 text-xs">Suggested Action</p>
+                        <p className="capitalize font-bold">{decryptedData.aiAnalysis.suggestedAction}</p>
                       </div>
-                      
-                      {decryptedData.aiAnalysis.reasoning && (
-                        <div className="mt-2">
-                          <p className="text-slate-500 text-xs">Reasoning</p>
-                          <p className="text-slate-400 text-sm">{decryptedData.aiAnalysis.reasoning}</p>
-                        </div>
-                      )}
-                    </div>
+                    </NeoCard>
                   )}
 
                   {/* Actions */}
                   {selectedReport.status === 'under_review' && (
                     <div className="flex gap-3 pt-4">
-                      <Button 
+                      <NeoButton 
                         onClick={handleVerify}
                         disabled={actionLoading}
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                        variant="green"
+                        className="flex-1"
                       >
                         {actionLoading ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <div className="w-4 h-4 border-2 border-neo-black border-t-transparent rounded-full animate-spin" />
                         ) : (
                           <>
                             <CheckCircle className="w-4 h-4 mr-2" />
                             Verify & Reward
                           </>
                         )}
-                      </Button>
-                      <Button 
+                      </NeoButton>
+                      <NeoButton 
                         onClick={handleReject}
                         disabled={actionLoading}
-                        variant="outline"
-                        className="flex-1 border-red-500/50 text-red-400 hover:bg-red-500/10"
+                        danger
+                        className="flex-1 bg-red-400"
                       >
                         <XCircle className="w-4 h-4 mr-2" />
                         Reject
-                      </Button>
+                      </NeoButton>
                     </div>
                   )}
 
                   {selectedReport.status === 'verified' && (
-                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-emerald-400" />
-                      <p className="text-emerald-300">This report has been verified and rewarded.</p>
-                    </div>
+                    <NeoCard variant="green" className="p-4 flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5" />
+                      <p className="font-bold">This report has been verified and rewarded.</p>
+                    </NeoCard>
                   )}
 
                   {selectedReport.status === 'rejected' && (
-                    <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center gap-3">
-                      <XCircle className="w-5 h-5 text-red-400" />
-                      <p className="text-red-300">This report has been rejected.</p>
-                    </div>
+                    <NeoCard className="p-4 bg-red-100 flex items-center gap-3">
+                      <XCircle className="w-5 h-5 text-red-600" />
+                      <p className="font-bold text-red-600">This report has been rejected.</p>
+                    </NeoCard>
                   )}
                 </div>
               ) : null}
             </div>
-          </div>
+          </NeoCard>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
-
-
