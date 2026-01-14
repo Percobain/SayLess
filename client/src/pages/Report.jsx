@@ -1,18 +1,42 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Shield, Lock, Upload, CheckCircle, AlertCircle, ExternalLink, ArrowLeft, ArrowRight } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { encryptWithNaCl, encryptFile } from '../lib/encryption';
-import { checkSession, submitReport } from '../lib/api';
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import {
+  Shield,
+  Lock,
+  Upload,
+  CheckCircle,
+  AlertCircle,
+  ExternalLink,
+  ArrowLeft,
+  Key,
+  Cloud,
+  Hash,
+  FileText,
+  Loader2,
+} from "lucide-react";
+import { BrutalCard } from "../components/BrutalCard";
+import { BrutalButton } from "../components/BrutalButton";
+import { Skeleton } from "../components/Skeleton";
+import { encryptWithNaCl, encryptFile } from "../lib/encryption";
+import { checkSession, submitReport } from "../lib/api";
+
+const ENCRYPTION_STEPS = [
+  { id: "key", label: "Generate Key", icon: Key },
+  { id: "encrypt", label: "Encrypt", icon: Lock },
+  { id: "wrap", label: "Wrap Key", icon: Shield },
+  { id: "ipfs", label: "Upload IPFS", icon: Cloud },
+  { id: "hash", label: "On-Chain", icon: Hash },
+];
 
 export default function Report() {
   const { sessionId } = useParams();
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const [files, setFiles] = useState([]);
-  const [status, setStatus] = useState('loading'); // loading, valid, invalid, encrypting, submitting, done, error
+  const [status, setStatus] = useState("loading");
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [sessionInfo, setSessionInfo] = useState(null);
+  const [currentStep, setCurrentStep] = useState(-1);
 
   useEffect(() => {
     async function validateSession() {
@@ -20,14 +44,14 @@ export default function Report() {
         const data = await checkSession(sessionId);
         if (data.valid) {
           setSessionInfo(data);
-          setStatus('valid');
+          setStatus("valid");
         } else {
-          setError(data.error || 'Invalid session');
-          setStatus('invalid');
+          setError(data.error || "Invalid session");
+          setStatus("invalid");
         }
       } catch (err) {
-        setError('Failed to validate session');
-        setStatus('invalid');
+        setError("Failed to validate session");
+        setStatus("invalid");
       }
     }
     validateSession();
@@ -35,236 +59,333 @@ export default function Report() {
 
   const handleSubmit = async () => {
     if (!text.trim()) {
-      setError('Please enter your report');
+      setError("Please enter your report");
       return;
     }
 
     try {
-      setStatus('encrypting');
+      setStatus("encrypting");
       setError(null);
 
-      // Encrypt report text
+      for (let i = 0; i < ENCRYPTION_STEPS.length - 1; i++) {
+        setCurrentStep(i);
+        await new Promise((r) => setTimeout(r, 600));
+      }
+
       const encryptedReport = encryptWithNaCl(text);
+      const encryptedFiles = await Promise.all(files.map((f) => encryptFile(f)));
 
-      // Encrypt files if any
-      const encryptedFiles = await Promise.all(
-        files.map(f => encryptFile(f))
-      );
-
-      // Build payload
       const payload = {
         report: encryptedReport,
         files: encryptedFiles,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
-      setStatus('submitting');
+      setCurrentStep(ENCRYPTION_STEPS.length - 1);
+      setStatus("submitting");
 
-      // Submit to backend
       const data = await submitReport(sessionId, payload);
 
       if (data.success) {
         setResult(data);
-        setStatus('done');
+        setStatus("done");
       } else {
-        setError(data.error || 'Submission failed');
-        setStatus('error');
+        setError(data.error || "Submission failed");
+        setStatus("error");
       }
     } catch (err) {
       console.error(err);
-      setError(err.message || 'An error occurred');
-      setStatus('error');
+      setError(err.message || "An error occurred");
+      setStatus("error");
     }
   };
 
   // Loading state
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-[#D94A3A] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[#F0ECD9]/50 uppercase tracking-widest text-sm">Validating session...</p>
+      <div className="bg-veil-bg min-h-screen">
+        <div className="container mx-auto px-4 py-6">
+          <div className="bg-white border-2 border-veil-muted rounded-xl p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-10 h-10 rounded-xl" />
+              <div>
+                <Skeleton className="h-3 w-24 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </div>
+          </div>
+          <div className="bg-white border-2 border-veil-muted rounded-xl p-4">
+            <Skeleton className="h-6 w-40 mb-4" />
+            <Skeleton className="h-40 w-full rounded-xl mb-4" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+          </div>
         </div>
       </div>
     );
   }
 
   // Invalid session
-  if (status === 'invalid') {
+  if (status === "invalid") {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-6">
-        <div className="max-w-md w-full text-center animate-fade-in">
-          <AlertCircle className="w-16 h-16 text-[#D94A3A] mx-auto mb-6" />
-          <h1 className="text-3xl font-display font-bold text-[#F0ECD9] mb-4">Invalid Session</h1>
-          <p className="text-[#F0ECD9]/50 mb-10">{error || 'This session has expired or does not exist.'}</p>
+      <div className="bg-veil-bg min-h-screen flex items-center justify-center p-4">
+        <BrutalCard className="max-w-sm w-full text-center">
+          <div className="w-14 h-14 bg-veil-danger rounded-xl flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-7 h-7 text-white" />
+          </div>
+          <h1 className="text-2xl font-display font-bold text-veil-ink mb-3">
+            Invalid Session
+          </h1>
+          <p className="text-sm text-veil-ink/60 mb-6">
+            {error || "This session has expired or does not exist."}
+          </p>
           <Link to="/">
-            <Button variant="outline" className="group">
-              <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
+            <BrutalButton variant="secondary" className="w-full">
+              <ArrowLeft className="w-4 h-4" />
               Go Home
-            </Button>
+            </BrutalButton>
           </Link>
-        </div>
+        </BrutalCard>
       </div>
     );
   }
 
   // Success state
-  if (status === 'done') {
+  if (status === "done") {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-6">
-        <div className="max-w-lg w-full text-center animate-fade-in">
-          <CheckCircle className="w-16 h-16 text-[#D94A3A] mx-auto mb-6" />
-          <h1 className="text-3xl font-display font-bold text-[#F0ECD9] mb-4">Report Submitted</h1>
-          <p className="text-[#F0ECD9]/50 mb-10">
-            Your encrypted report has been stored on IPFS and verified on blockchain.
+      <div className="bg-veil-bg min-h-screen flex items-center justify-center p-4">
+        <BrutalCard className="max-w-sm w-full text-center">
+          <div className="w-14 h-14 bg-veil-success rounded-xl flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-7 h-7 text-white" />
+          </div>
+          <h1 className="text-2xl font-display font-bold text-veil-ink mb-3">
+            Report Submitted
+          </h1>
+          <p className="text-sm text-veil-ink/60 mb-6">
+            Encrypted and stored on blockchain.
           </p>
-          
-          <div className="bg-[#F0ECD9]/5 p-6 text-left space-y-4 mb-10 border border-[#F0ECD9]/10">
+
+          <div className="bg-veil-muted/30 rounded-xl p-4 text-left space-y-3 mb-6">
             <div>
-              <p className="text-xs text-[#F0ECD9]/40 uppercase tracking-widest mb-1">IPFS CID</p>
-              <p className="text-sm text-[#F0ECD9] font-mono break-all">{result.cid}</p>
+              <p className="text-xs text-veil-ink/50 uppercase mb-1">IPFS CID</p>
+              <p className="text-xs text-veil-ink font-mono break-all">{result.cid}</p>
             </div>
             <div>
-              <p className="text-xs text-[#F0ECD9]/40 uppercase tracking-widest mb-1">Transaction Hash</p>
-              <p className="text-sm text-[#F0ECD9] font-mono break-all">{result.txHash}</p>
+              <p className="text-xs text-veil-ink/50 uppercase mb-1">TX Hash</p>
+              <p className="text-xs text-veil-ink font-mono break-all">{result.txHash}</p>
             </div>
             <div>
-              <p className="text-xs text-[#F0ECD9]/40 uppercase tracking-widest mb-1">Report ID</p>
-              <p className="text-sm text-[#F0ECD9] font-mono">{result.reportId}</p>
+              <p className="text-xs text-veil-ink/50 uppercase mb-1">Report ID</p>
+              <p className="text-xs text-veil-ink font-mono">{result.reportId}</p>
             </div>
           </div>
-          
-          <div className="flex flex-col gap-4">
-            <a 
-              href={`https://sepolia.etherscan.io/tx/${result.txHash}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              <Button className="w-full group">
-                View on Etherscan
-                <ExternalLink className="w-4 h-4 ml-2" />
-              </Button>
-            </a>
-            <p className="text-xs text-[#F0ECD9]/30">
-              Send STATUS {sessionId} on WhatsApp to track your report.
-            </p>
-          </div>
-        </div>
+
+          <a
+            href={`https://sepolia.etherscan.io/tx/${result.txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block mb-3"
+          >
+            <BrutalButton variant="primary" className="w-full">
+              View on Etherscan
+              <ExternalLink className="w-4 h-4" />
+            </BrutalButton>
+          </a>
+          <p className="text-xs text-veil-ink/40">
+            Send STATUS {sessionId} on WhatsApp to track.
+          </p>
+        </BrutalCard>
       </div>
     );
   }
 
   // Main form
   return (
-    <div className="min-h-screen bg-[#0A0A0A] py-16 px-6">
-      <div className="max-w-2xl mx-auto animate-fade-in">
-        {/* Header */}
-        <div className="mb-12">
-          <div className="inline-flex items-center gap-2 border-b border-[#F0ECD9]/20 pb-2 mb-8">
-            <Lock className="w-4 h-4 text-[#D94A3A]" />
-            <span className="text-[#F0ECD9]/60 text-sm uppercase tracking-widest">End-to-End Encrypted</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-display font-bold text-[#F0ECD9] mb-3 tracking-tight">Anonymous Report</h1>
-          <p className="text-[#F0ECD9]/40 font-mono text-sm">Session: {sessionId}</p>
-        </div>
-
-        {/* Form */}
-        <div className="space-y-8">
-          {/* Security Notice */}
-          <div className="bg-[#D94A3A]/5 border-l-2 border-[#D94A3A] p-5">
-            <div className="flex items-start gap-4">
-              <Shield className="w-5 h-5 text-[#D94A3A] flex-shrink-0 mt-0.5" />
+    <div className="bg-veil-bg min-h-screen">
+      <div className="container mx-auto px-4 py-6">
+        {/* Session Banner */}
+        <BrutalCard className="mb-6 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-veil-accent rounded-xl flex items-center justify-center">
+                <Lock className="w-5 h-5 text-white" />
+              </div>
               <div>
-                <p className="text-sm text-[#F0ECD9] font-medium mb-1">Your report is encrypted in this browser</p>
-                <p className="text-xs text-[#F0ECD9]/40">
-                  Content is encrypted before leaving your device. Only the designated authority can decrypt it.
+                <p className="text-xs text-veil-ink/50 uppercase">Session</p>
+                <p className="font-mono text-sm font-semibold text-veil-ink truncate max-w-[150px]">
+                  {sessionId}
                 </p>
               </div>
             </div>
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-veil-success text-white text-xs font-semibold rounded-lg">
+              <span className="w-1.5 h-1.5 bg-white rounded-full" />
+              Secure
+            </span>
+          </div>
+        </BrutalCard>
+
+        {/* Security Notice */}
+        <div className="bg-veil-accent/10 border-2 border-veil-accent rounded-xl p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-veil-accent flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-veil-ink mb-1">End-to-End Encrypted</p>
+              <p className="text-xs text-veil-ink/60">
+                Content encrypted in your browser. Only the authority can decrypt.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Report Form */}
+        <BrutalCard className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="w-5 h-5 text-veil-accent" />
+            <h2 className="font-display font-bold text-veil-ink">Write Your Report</h2>
           </div>
 
-          {/* Report Text */}
-          <div>
-            <label className="block text-sm font-medium text-[#F0ECD9]/60 uppercase tracking-widest mb-3">
+          <div className="mb-4">
+            <label className="text-xs text-veil-ink/50 uppercase block mb-2">
               Describe the incident
             </label>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Provide as much detail as possible about the incident..."
-              className="w-full h-48 bg-[#F0ECD9]/5 border border-[#F0ECD9]/10 p-5 text-[#F0ECD9] placeholder-[#F0ECD9]/20 focus:outline-none focus:border-[#D94A3A] resize-none transition-colors"
-              disabled={status === 'encrypting' || status === 'submitting'}
+              placeholder="Provide as much detail as possible..."
+              className="w-full h-36 p-4 bg-veil-muted/20 border-2 border-veil-ink rounded-xl text-sm text-veil-ink placeholder:text-veil-ink/30 focus:outline-none focus:ring-2 focus:ring-veil-accent resize-none"
+              disabled={status === "encrypting" || status === "submitting"}
             />
+            <div className="flex justify-between mt-2 text-xs text-veil-ink/40">
+              <span>{text.length} characters</span>
+              <span>Min 50 recommended</span>
+            </div>
           </div>
 
           {/* File Upload */}
-          <div>
-            <label className="block text-sm font-medium text-[#F0ECD9]/60 uppercase tracking-widest mb-3">
+          <div className="mb-4">
+            <label className="text-xs text-veil-ink/50 uppercase block mb-2">
               Evidence (optional)
             </label>
-            <div className="border border-dashed border-[#F0ECD9]/20 p-8 text-center hover:border-[#F0ECD9]/40 transition-colors cursor-pointer">
-              <Upload className="w-6 h-6 text-[#F0ECD9]/30 mx-auto mb-3" />
+            <div className="border-2 border-dashed border-veil-ink/20 rounded-xl p-6 text-center">
+              <Upload className="w-6 h-6 text-veil-ink/30 mx-auto mb-2" />
               <input
                 type="file"
                 multiple
                 onChange={(e) => setFiles([...e.target.files])}
                 className="hidden"
                 id="file-upload"
-                disabled={status === 'encrypting' || status === 'submitting'}
+                disabled={status === "encrypting" || status === "submitting"}
               />
               <label htmlFor="file-upload" className="cursor-pointer">
-                <span className="text-sm text-[#F0ECD9]/40">
-                  Click to upload files or drag and drop
-                </span>
+                <span className="text-xs text-veil-ink/50">Tap to upload files</span>
               </label>
               {files.length > 0 && (
-                <div className="mt-4 text-sm text-[#D94A3A]">
-                  {files.length} file(s) selected
+                <div className="mt-3">
+                  <span className="inline-flex items-center px-2 py-1 bg-veil-accent text-white text-xs font-semibold rounded-lg">
+                    {files.length} file(s)
+                  </span>
                 </div>
               )}
             </div>
           </div>
 
           {/* Error */}
-          {error && status === 'error' && (
-            <div className="bg-[#D94A3A]/10 border-l-2 border-[#D94A3A] p-4">
-              <p className="text-sm text-[#D94A3A]">{error}</p>
+          {error && status === "error" && (
+            <div className="bg-veil-danger/10 border-2 border-veil-danger rounded-xl p-4 mb-4">
+              <p className="text-sm text-veil-danger font-semibold">{error}</p>
             </div>
           )}
 
-          {/* Submit Button */}
-          <Button
+          <BrutalButton
             onClick={handleSubmit}
-            disabled={status === 'encrypting' || status === 'submitting' || !text.trim()}
-            className="w-full py-6 text-base group"
-            size="lg"
+            disabled={status === "encrypting" || status === "submitting" || !text.trim()}
+            variant="primary"
+            className="w-full"
+            loading={status === "encrypting" || status === "submitting"}
           >
-            {status === 'valid' && (
+            {status === "valid" && (
               <>
-                <Lock className="w-5 h-5 mr-2" />
-                Encrypt & Submit Report
-                <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
+                <Lock className="w-4 h-4" />
+                Encrypt & Submit
               </>
             )}
-            {status === 'encrypting' && (
-              <>
-                <div className="w-5 h-5 border-2 border-[#0A0A0A] border-t-transparent rounded-full animate-spin mr-2" />
-                Encrypting...
-              </>
-            )}
-            {status === 'submitting' && (
-              <>
-                <div className="w-5 h-5 border-2 border-[#0A0A0A] border-t-transparent rounded-full animate-spin mr-2" />
-                Submitting to blockchain...
-              </>
-            )}
-            {status === 'error' && 'Try Again'}
-          </Button>
+            {status === "encrypting" && "Encrypting..."}
+            {status === "submitting" && "Submitting..."}
+            {status === "error" && "Try Again"}
+          </BrutalButton>
 
-          <p className="text-xs text-[#F0ECD9]/30 text-center">
-            By submitting, you confirm this is a genuine report. False reports will result in reputation penalties.
+          <p className="text-xs text-veil-ink/40 text-center mt-3">
+            False reports result in stake penalties.
           </p>
-        </div>
+        </BrutalCard>
+
+        {/* Encryption Progress */}
+        <BrutalCard className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Lock className="w-5 h-5 text-veil-accent" />
+            <h2 className="font-display font-bold text-veil-ink">Encryption Pipeline</h2>
+          </div>
+          <div className="space-y-2">
+            {ENCRYPTION_STEPS.map((step, idx) => {
+              const Icon = step.icon;
+              const isActive = currentStep === idx;
+              const isComplete = currentStep > idx;
+
+              return (
+                <div
+                  key={step.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+                    isComplete
+                      ? "bg-veil-success/10 border-veil-success"
+                      : isActive
+                      ? "bg-veil-accent/10 border-veil-accent"
+                      : "bg-veil-muted/20 border-veil-muted"
+                  }`}
+                >
+                  <div
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      isComplete
+                        ? "bg-veil-success text-white"
+                        : isActive
+                        ? "bg-veil-accent text-white"
+                        : "bg-veil-muted text-veil-ink/40"
+                    }`}
+                  >
+                    {isComplete ? (
+                      <CheckCircle className="w-4 h-4" />
+                    ) : isActive ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Icon className="w-4 h-4" />
+                    )}
+                  </div>
+                  <span
+                    className={`text-sm font-medium ${
+                      isComplete || isActive ? "text-veil-ink" : "text-veil-ink/40"
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </BrutalCard>
+
+        {/* Stake Panel */}
+        <BrutalCard className="bg-veil-warning/10 border-veil-warning">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-veil-warning rounded-xl flex items-center justify-center">
+              <Shield className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="font-display font-bold text-veil-ink">Stake Required</p>
+              <p className="text-xl font-display font-bold text-veil-warning">0.01 ETH</p>
+            </div>
+          </div>
+          <p className="text-xs text-veil-ink/60">
+            A small stake prevents spam. Verified reports get stake + reward.
+          </p>
+        </BrutalCard>
       </div>
     </div>
   );

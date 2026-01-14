@@ -5,18 +5,21 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ["Inter Tight", "system-ui", "sans-serif"],
-        body: ["DM Sans", "system-ui", "sans-serif"],
-      },
-      transitionTimingFunction: {
-        cinematic: "cubic-bezier(0.16, 1, 0.3, 1)",
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        display: ["Space Grotesk", "system-ui", "sans-serif"],
+        body: ["Inter", "system-ui", "sans-serif"],
       },
       colors: {
+        // Neo-Brutalist Veil palette
+        "veil-bg": "#FAFAFA",
+        "veil-ink": "#0A0A0A",
+        "veil-accent": "#7C3AED",
+        "veil-accent-2": "#22D3EE",
+        "veil-warning": "#F59E0B",
+        "veil-danger": "#EF4444",
+        "veil-success": "#10B981",
+        "veil-muted": "#E5E7EB",
+        "veil-card": "#FFFFFF",
+        // Legacy support
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -50,13 +53,21 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        chart: {
-          1: "hsl(var(--chart-1))",
-          2: "hsl(var(--chart-2))",
-          3: "hsl(var(--chart-3))",
-          4: "hsl(var(--chart-4))",
-          5: "hsl(var(--chart-5))",
-        },
+      },
+      boxShadow: {
+        brutal: "8px 8px 0 0 rgba(0,0,0,0.9)",
+        "brutal-sm": "4px 4px 0 0 rgba(0,0,0,0.9)",
+        "brutal-accent": "8px 8px 0 0 #7C3AED",
+        "brutal-danger": "8px 8px 0 0 #EF4444",
+      },
+      borderRadius: {
+        brutal: "1.25rem",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      transitionTimingFunction: {
+        brutal: "cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },
   },

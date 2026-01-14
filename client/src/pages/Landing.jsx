@@ -1,153 +1,234 @@
-import { Link } from 'react-router-dom';
-import { Shield, Lock, Zap, MessageSquare, ArrowRight } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import { Link } from "react-router-dom";
+import {
+  Shield,
+  Lock,
+  Zap,
+  MessageSquare,
+  ChevronDown,
+  Eye,
+} from "lucide-react";
+import { BrutalCard } from "../components/BrutalCard";
+import { BrutalButton } from "../components/BrutalButton";
+import { useState } from "react";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
+    <div className="bg-veil-bg">
       {/* Hero Section */}
-      <div className="container mx-auto px-6 py-24 lg:py-32">
-        <div className="max-w-5xl">
-          <div className="inline-flex items-center gap-2 border-b border-[#F0ECD9]/20 pb-2 mb-12">
-            <Shield className="w-4 h-4 text-[#D94A3A]" />
-            <span className="text-[#F0ECD9]/60 text-sm font-medium uppercase tracking-widest">Anonymous & Encrypted</span>
+      <section className="container mx-auto px-4 py-12">
+        <div className="max-w-lg">
+          <div className="inline-flex items-center gap-1 px-3 py-1.5 bg-veil-accent text-white text-xs font-semibold rounded-full mb-6">
+            <Shield className="w-3 h-3" />
+            Anonymous & Encrypted
           </div>
-          
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-display font-black text-[#F0ECD9] mb-8 tracking-tight leading-[0.9]">
-            Say<span className="text-[#D94A3A]">Less</span>
+
+          <h1 className="text-4xl font-display font-bold text-veil-ink mb-4 leading-tight">
+            Report without
+            <br />
+            <span className="text-veil-accent">being seen.</span>
           </h1>
-          
-          <p className="text-2xl md:text-3xl text-[#F0ECD9]/80 mb-4 font-light max-w-2xl">
-            Anonymous Crime Reporting Protocol
+
+          <p className="text-base text-veil-ink/70 mb-3">
+            Anonymous crime reporting powered by encryption and blockchain.
           </p>
-          
-          <p className="text-[#F0ECD9]/40 max-w-xl mb-16 text-lg leading-relaxed">
-            Report crimes anonymously via WhatsApp. Your report is encrypted in your browser 
-            before it leaves your device. Even we cannot read it.
+
+          <p className="text-sm text-veil-ink/50 mb-8">
+            Your report is encrypted in your browser before it leaves your device. Only the authority can decrypt it.
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-6">
-            <Link to="/authority">
-              <Button size="lg" className="group">
-                Authority Dashboard
-                <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
-              </Button>
-            </Link>
-            <a href="https://wa.me/14155238886?text=REPORT" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" variant="outline" className="group">
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Start on WhatsApp
-                <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
-              </Button>
+
+          <div className="flex flex-col gap-3">
+            <a
+              href="https://wa.me/14155238886?text=REPORT"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <BrutalButton variant="primary" size="lg" className="w-full" showArrow>
+                <MessageSquare className="w-5 h-5" />
+                Start Anonymous Report
+              </BrutalButton>
             </a>
+            <Link to="/dashboard">
+              <BrutalButton variant="secondary" size="lg" className="w-full">
+                View My Dashboard
+              </BrutalButton>
+            </Link>
           </div>
         </div>
-      </div>
-      
+      </section>
+
       {/* Features */}
-      <div className="container mx-auto px-6 py-24 border-t border-[#F0ECD9]/10">
-        <div className="grid md:grid-cols-3 gap-12 lg:gap-16 max-w-6xl">
-          <div className="group hover-scale">
-            <div className="mb-6">
-              <Lock className="w-8 h-8 text-[#D94A3A]" />
+      <section className="container mx-auto px-4 py-10 border-t-2 border-veil-ink">
+        <div className="space-y-4">
+          <BrutalCard className="p-5">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-veil-accent rounded-xl flex items-center justify-center flex-shrink-0">
+                <Lock className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-display font-bold text-veil-ink mb-1">
+                  Encrypt in Browser
+                </h3>
+                <p className="text-sm text-veil-ink/60">
+                  Reports encrypted using NaCl cryptography before leaving your device.
+                </p>
+              </div>
             </div>
-            <h3 className="text-xl font-display font-bold text-[#F0ECD9] mb-4">End-to-End Encrypted</h3>
-            <p className="text-[#F0ECD9]/50 leading-relaxed">
-              Reports are encrypted in your browser using NaCl cryptography. 
-              Only the authority can decrypt them.
-            </p>
-          </div>
-          
-          <div className="group hover-scale">
-            <div className="mb-6">
-              <Zap className="w-8 h-8 text-[#D94A3A]" />
+          </BrutalCard>
+
+          <BrutalCard className="p-5">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-veil-accent rounded-xl flex items-center justify-center flex-shrink-0">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-display font-bold text-veil-ink mb-1">
+                  Commit On-Chain
+                </h3>
+                <p className="text-sm text-veil-ink/60">
+                  Every report creates an immutable record on Ethereum blockchain.
+                </p>
+              </div>
             </div>
-            <h3 className="text-xl font-display font-bold text-[#F0ECD9] mb-4">Blockchain Verified</h3>
-            <p className="text-[#F0ECD9]/50 leading-relaxed">
-              Every report creates an immutable record on Ethereum. 
-              Tamper-proof and permanently verifiable.
-            </p>
-          </div>
-          
-          <div className="group hover-scale">
-            <div className="mb-6">
-              <Shield className="w-8 h-8 text-[#D94A3A]" />
+          </BrutalCard>
+
+          <BrutalCard className="p-5">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-veil-accent rounded-xl flex items-center justify-center flex-shrink-0">
+                <Eye className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-display font-bold text-veil-ink mb-1">
+                  No Message Required
+                </h3>
+                <p className="text-sm text-veil-ink/60">
+                  Even a missed call can create a cryptographic proof. Report silently.
+                </p>
+              </div>
             </div>
-            <h3 className="text-xl font-display font-bold text-[#F0ECD9] mb-4">Rewarded & Anonymous</h3>
-            <p className="text-[#F0ECD9]/50 leading-relaxed">
-              Earn rewards for verified reports. Your identity is never revealed 
-              to authorities or stored on-chain.
-            </p>
-          </div>
+          </BrutalCard>
         </div>
-      </div>
-      
+      </section>
+
       {/* How it works */}
-      <div className="container mx-auto px-6 py-24 border-t border-[#F0ECD9]/10">
-        <h2 className="text-4xl md:text-5xl font-display font-bold text-[#F0ECD9] mb-20 tracking-tight">How It Works</h2>
-        
-        <div className="max-w-3xl space-y-16">
-          <div className="flex items-start gap-8 group">
-            <div className="w-12 h-12 border border-[#F0ECD9]/20 flex items-center justify-center flex-shrink-0 text-[#D94A3A] font-display font-bold text-xl transition-colors group-hover:border-[#D94A3A] group-hover:bg-[#D94A3A]/10">
-              1
-            </div>
-            <div>
-              <h3 className="text-xl font-display font-bold text-[#F0ECD9] mb-3">Text "REPORT" on WhatsApp</h3>
-              <p className="text-[#F0ECD9]/50 leading-relaxed">
-                Send a message to our WhatsApp number. You'll receive a secure, one-time link.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-8 group">
-            <div className="w-12 h-12 border border-[#F0ECD9]/20 flex items-center justify-center flex-shrink-0 text-[#D94A3A] font-display font-bold text-xl transition-colors group-hover:border-[#D94A3A] group-hover:bg-[#D94A3A]/10">
-              2
-            </div>
-            <div>
-              <h3 className="text-xl font-display font-bold text-[#F0ECD9] mb-3">Write Your Report</h3>
-              <p className="text-[#F0ECD9]/50 leading-relaxed">
-                Open the link in your browser. Describe the incident. Your text is encrypted 
-                before it ever leaves your device.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-8 group">
-            <div className="w-12 h-12 border border-[#F0ECD9]/20 flex items-center justify-center flex-shrink-0 text-[#D94A3A] font-display font-bold text-xl transition-colors group-hover:border-[#D94A3A] group-hover:bg-[#D94A3A]/10">
-              3
-            </div>
-            <div>
-              <h3 className="text-xl font-display font-bold text-[#F0ECD9] mb-3">Stored Securely</h3>
-              <p className="text-[#F0ECD9]/50 leading-relaxed">
-                Encrypted report is stored on IPFS. A cryptographic proof is recorded on 
-                Ethereum. Only the authority can decrypt and review.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-8 group">
-            <div className="w-12 h-12 border border-[#F0ECD9]/20 flex items-center justify-center flex-shrink-0 text-[#D94A3A] font-display font-bold text-xl transition-colors group-hover:border-[#D94A3A] group-hover:bg-[#D94A3A]/10">
-              4
-            </div>
-            <div>
-              <h3 className="text-xl font-display font-bold text-[#F0ECD9] mb-3">Get Rewarded</h3>
-              <p className="text-[#F0ECD9]/50 leading-relaxed">
-                If your report is verified, you receive ETH rewards to your anonymous wallet. 
-                Check with "REWARDS" on WhatsApp.
-              </p>
-            </div>
-          </div>
+      <section className="container mx-auto px-4 py-10 border-t-2 border-veil-ink">
+        <h2 className="text-2xl font-display font-bold text-veil-ink mb-8">
+          How It Works
+        </h2>
+
+        <div className="space-y-4">
+          <StepItem
+            number={1}
+            title='Text "REPORT" on WhatsApp'
+            description="Send a message to our WhatsApp number. You'll receive a secure link."
+          />
+          <StepItem
+            number={2}
+            title="Write Your Report"
+            description="Open the link. Describe the incident. Your text is encrypted locally."
+          />
+          <StepItem
+            number={3}
+            title="Stored Securely"
+            description="Encrypted report stored on IPFS with proof on Ethereum."
+          />
+          <StepItem
+            number={4}
+            title="Get Rewarded"
+            description="Verified reports earn ETH rewards to your anonymous wallet."
+          />
         </div>
-      </div>
-      
-      {/* Footer */}
-      <footer className="border-t border-[#F0ECD9]/10 py-12">
-        <div className="container mx-auto px-6">
-          <p className="text-[#F0ECD9]/30 text-sm">
-            SayLess Protocol • Built for Project VEIL • Encrypted, Anonymous, Verified
+      </section>
+
+      {/* FAQ */}
+      <section className="container mx-auto px-4 py-10 border-t-2 border-veil-ink">
+        <h2 className="text-2xl font-display font-bold text-veil-ink mb-8">
+          Questions
+        </h2>
+
+        <div className="space-y-3">
+          <FAQItem
+            question="Who can read my report?"
+            answer="Only the designated authority can decrypt and read your report. The encryption happens in your browser."
+          />
+          <FAQItem
+            question="Why do I need to stake ETH?"
+            answer="A small stake (0.01 ETH) prevents spam. Verified reports get stake + reward."
+          />
+          <FAQItem
+            question="Is my identity stored?"
+            answer="No. Your identity is never revealed or stored on-chain. Only your anonymous session ID exists."
+          />
+          <FAQItem
+            question="What if my report is rejected?"
+            answer="If rejected, your stake is slashed. This discourages false reports."
+          />
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="container mx-auto px-4 py-10 border-t-2 border-veil-ink">
+        <BrutalCard className="text-center py-8 px-4">
+          <h2 className="text-xl font-display font-bold text-veil-ink mb-3">
+            Ready to report anonymously?
+          </h2>
+          <p className="text-sm text-veil-ink/60 mb-6">
+            Start a secure session via WhatsApp in minutes.
           </p>
+          <a
+            href="https://wa.me/14155238886?text=REPORT"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <BrutalButton variant="accent" showArrow>
+              <MessageSquare className="w-4 h-4" />
+              Start on WhatsApp
+            </BrutalButton>
+          </a>
+        </BrutalCard>
+      </section>
+    </div>
+  );
+}
+
+function StepItem({ number, title, description }) {
+  return (
+    <div className="flex items-start gap-4">
+      <div className="w-10 h-10 border-2 border-veil-ink rounded-xl flex items-center justify-center flex-shrink-0 text-veil-accent font-display font-bold">
+        {number}
+      </div>
+      <div>
+        <h3 className="text-base font-display font-bold text-veil-ink mb-1">
+          {title}
+        </h3>
+        <p className="text-sm text-veil-ink/60">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function FAQItem({ question, answer }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div
+      className={`bg-white border-2 border-veil-ink rounded-xl overflow-hidden transition-all ${
+        isOpen ? "shadow-brutal" : ""
+      }`}
+      onClick={() => setIsOpen(!isOpen)}
+    >
+      <div className="p-4 flex items-center justify-between cursor-pointer">
+        <h3 className="font-display font-bold text-veil-ink text-sm pr-4">{question}</h3>
+        <ChevronDown
+          className={`w-5 h-5 text-veil-ink flex-shrink-0 transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </div>
+      {isOpen && (
+        <div className="px-4 pb-4 pt-0 border-t-2 border-veil-ink">
+          <p className="text-sm text-veil-ink/60 pt-4">{answer}</p>
         </div>
-      </footer>
+      )}
     </div>
   );
 }
