@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const sessionSchema = new mongoose.Schema({
   sessionId: {
@@ -49,6 +49,4 @@ const sessionSchema = new mongoose.Schema({
 // TTL index for automatic expiration of unused sessions
 sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-module.exports = mongoose.model('Session', sessionSchema);
-
-
+export default mongoose.model('Session', sessionSchema);

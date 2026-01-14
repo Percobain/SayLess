@@ -1,11 +1,11 @@
-const crypto = require('crypto');
-const { v4: uuid } = require('uuid');
-const { ethers } = require('ethers');
-const User = require('../models/User');
-const Session = require('../models/Session');
-const { getReputation, getRewards, claimRewards, getWalletBalance } = require('./blockchain');
-const { createPrivyWallet, fundWalletWithEth } = require('./privy');
-const logger = require('../utils/logger');
+import crypto from 'crypto';
+import { v4 as uuid } from 'uuid';
+import { ethers } from 'ethers';
+import User from '../models/User.js';
+import Session from '../models/Session.js';
+import { getReputation, getRewards, claimRewards, getWalletBalance } from './blockchain.js';
+import { createPrivyWallet, fundWalletWithEth } from './privy.js';
+import logger from '../utils/logger.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
@@ -47,8 +47,7 @@ const handleIncomingMessage = async (params) => {
           whatsappHash,
           odacityUserId: uuid(),
           wallet: privyWallet.address,
-          privyWalletId: privyWallet.privyWalletId,
-          privateKey: 'privy-managed'
+          privyWalletId: privyWallet.privyWalletId
         });
         
         logger.info(`[WhatsApp Handler] Created Privy wallet: ${privyWallet.address} (ID: ${privyWallet.privyWalletId})`);
@@ -170,18 +169,11 @@ const handleIncomingMessage = async (params) => {
   else if (command === 'EXPORT') {
     const user = await User.findOne({ whatsappHash });
     if (user) {
-      if (user.privyWalletId) {
-        return `🔑 Your Privy Wallet\n\n` +
-               `Address: ${user.wallet}\n` +
-               `Privy Wallet ID: ${user.privyWalletId}\n\n` +
-               `Your wallet is managed by Privy. To export your private key, use the Privy dashboard or API.\n\n` +
-               `⚠️ Keep your wallet secure!`;
-      } else {
-        return `🔑 Your Wallet Export\n\n` +
-               `Address: ${user.wallet}\n\n` +
-               `Private Key: ${user.privateKey}\n\n` +
-               `⚠️ Keep this safe! Anyone with this key controls your wallet.`;
-      }
+      return `🔑 Your Privy Wallet\n\n` +
+             `Address: ${user.wallet}\n` +
+             `Privy Wallet ID: ${user.privyWalletId}\n\n` +
+             `Your wallet is managed by Privy. To export your private key, use the Privy dashboard or API.\n\n` +
+             `⚠️ Keep your wallet secure!`;
     } else {
       return 'No wallet found. Send REPORT first.';
     }
@@ -208,6 +200,6 @@ const handleIncomingMessage = async (params) => {
   }
 };
 
-module.exports = {
+export {
   handleIncomingMessage
 };

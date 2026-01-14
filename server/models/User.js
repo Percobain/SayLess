@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
   whatsappHash: {
@@ -38,4 +38,4 @@ const userSchema = new mongoose.Schema({
   // Note: Old MongoDB document with _id 696808c8842ef0bc7f9d81de has privateKey - can be ignored/migrated
 });
 
-module.exports = mongoose.model('User', userSchema);
+export default mongoose.model('User', userSchema);

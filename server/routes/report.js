@@ -1,11 +1,11 @@
-const express = require('express');
-const router = express.Router();
+import express from 'express';
+import Session from '../models/Session.js';
+import Report from '../models/Report.js';
+import User from '../models/User.js';
+import { pinJSONToIPFS } from '../services/pinata.js';
+import { submitReport, computeKeccak256 } from '../services/blockchain.js';
 
-const Session = require('../models/Session');
-const Report = require('../models/Report');
-const User = require('../models/User');
-const { pinJSONToIPFS } = require('../services/pinata');
-const { submitReport, computeKeccak256 } = require('../services/blockchain');
+const router = express.Router();
 
 // GET /api/session/:id - Check if session is valid
 router.get('/session/:id', async (req, res) => {
@@ -118,6 +118,4 @@ router.post('/report', async (req, res) => {
   }
 });
 
-module.exports = router;
-
-
+export default router;

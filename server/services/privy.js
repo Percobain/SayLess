@@ -1,31 +1,28 @@
-const { ethers } = require('ethers');
-
-const PRIVY_API_URL = 'https://api.privy.io/v1';
+import { ethers } from 'ethers';
+import { PrivyClient } from '@privy-io/node';
 
 let funderWallet;
 let provider;
-let privyAppId;
-let privyAppSecret;
-let privyAuthHeader;
+let privyClient;
 
 async function initPrivy() {
   const funderKey = process.env.FUNDER_PRIVATE_KEY;
   const rpcUrl = process.env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.ethpandaops.io';
-  
-  // Get Privy credentials
-  privyAppId = process.env.PRIVY_APP_ID;
-  privyAppSecret = process.env.PRIVY_APP_SECRET;
-  
-  if (privyAppId && privyAppSecret) {
-    // Create Basic Auth header: base64(app_id:app_secret)
-    const credentials = Buffer.from(`${privyAppId}:${privyAppSecret}`).toString('base64');
-    privyAuthHeader = `Basic ${credentials}`;
-    console.log('Privy API credentials configured');
-  } else {
-    console.log('Warning: PRIVY_APP_ID or PRIVY_APP_SECRET not set');
-  }
+  const privyAppId = process.env.PRIVY_APP_ID;
+  const privyAppSecret = process.env.PRIVY_APP_SECRET;
   
   try {
+    // Initialize Privy client
+    if (privyAppId && privyAppSecret) {
+      privyClient = new PrivyClient({
+        appId: privyAppId,
+        appSecret: privyAppSecret
+      });
+      console.log('Privy client initialized');
+    } else {
+      console.log('Warning: PRIVY_APP_ID or PRIVY_APP_SECRET not set');
+    }
+    
     // Initialize provider
     provider = new ethers.JsonRpcProvider(rpcUrl);
     
@@ -48,31 +45,16 @@ async function initPrivy() {
   }
 }
 
-// Create a Privy embedded wallet using REST API
+// Create a Privy embedded wallet using Node.js SDK
 async function createPrivyWallet() {
-  if (!privyAppId || !privyAppSecret) {
-    throw new Error('Privy credentials not configured');
+  if (!privyClient) {
+    throw new Error('Privy client not initialized');
   }
   
   try {
-    const response = await fetch(`${PRIVY_API_URL}/wallets`, {
-      method: 'POST',
-      headers: {
-        'Authorization': privyAuthHeader,
-        'privy-app-id': privyAppId,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        chain_type: 'ethereum'
-      })
+    const wallet = await privyClient.wallets().create({
+      chain_type: 'ethereum'
     });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Privy API error: ${response.status} - ${errorText}`);
-    }
-    
-    const wallet = await response.json();
     
     console.log('[Privy] Created wallet:', wallet.id, wallet.address);
     
@@ -91,25 +73,13 @@ async function createPrivyWallet() {
 
 // Get a Privy wallet by ID
 async function getPrivyWallet(walletId) {
-  if (!privyAppId || !privyAppSecret) {
-    throw new Error('Privy credentials not configured');
+  if (!privyClient) {
+    throw new Error('Privy client not initialized');
   }
   
   try {
-    const response = await fetch(`${PRIVY_API_URL}/wallets/${walletId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': privyAuthHeader,
-        'privy-app-id': privyAppId
-      }
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Privy API error: ${response.status} - ${errorText}`);
-    }
-    
-    return await response.json();
+    const wallet = await privyClient.wallets().get(walletId);
+    return wallet;
   } catch (error) {
     console.error('[Privy] Error getting wallet:', error);
     throw error;
@@ -163,7 +133,7 @@ async function getFunderBalance() {
   }
 }
 
-module.exports = {
+export {
   initPrivy,
   createPrivyWallet,
   getPrivyWallet,

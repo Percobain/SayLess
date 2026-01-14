@@ -1,10 +1,11 @@
-const express = require('express');
+import express from 'express';
+import whatsappBot from '../services/whatsappBot.js';
+
 const router = express.Router();
-const whatsappBot = require('../services/whatsappBot');
 
 // POST /webhook/twilio - Handle WhatsApp/SMS messages
 router.post('/twilio', (req, res) => {
   whatsappBot.handleWebhook(req, res);
 });
 
-module.exports = router;
+export default router;

@@ -5,4 +5,4 @@ const logger = {
   bot: (botName, msg, meta = {}) => console.log(`[BOT:${botName}] ${msg}`, meta)
 };
 
-module.exports = logger;
+export default logger;

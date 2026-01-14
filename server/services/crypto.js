@@ -1,5 +1,6 @@
-const nacl = require('tweetnacl');
-const { encodeBase64, decodeBase64, encodeUTF8 } = require('tweetnacl-util');
+import nacl from 'tweetnacl';
+import naclUtil from 'tweetnacl-util';
+const { encodeBase64, decodeBase64, encodeUTF8 } = naclUtil;
 
 // Generate a new keypair for authority (run once and save to env)
 function generateAuthorityKeypair() {
@@ -48,9 +49,7 @@ function decryptReport(encryptedPayload, authoritySecretKeyBase64) {
   }
 }
 
-module.exports = {
+export {
   generateAuthorityKeypair,
   decryptReport
 };
-
-
