@@ -4,38 +4,54 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Earthy Color Palette:
+   Sage:    #CCD5AE (sage green)
+   Mint:    #E9EDC9 (light sage)
+   Cream:   #FEFAE0 (background)
+   Wheat:   #FAEDCD (beige)
+   Caramel: #D4A373 (accent)
+   Dark:    #5C4033 (brown text)
+*/
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 18 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --color-sage: #CCD5AE;
+    --color-mint: #E9EDC9;
+    --color-cream: #FEFAE0;
+    --color-wheat: #FAEDCD;
+    --color-caramel: #D4A373;
+    --color-dark: #5C4033;
+    
+    --background: 50 100% 94%;
+    --foreground: 24 31% 27%;
+    --card: 50 100% 94%;
+    --card-foreground: 24 31% 27%;
+    --popover: 50 100% 94%;
+    --popover-foreground: 24 31% 27%;
+    --primary: 30 52% 64%;
+    --primary-foreground: 50 100% 94%;
+    --secondary: 75 35% 76%;
+    --secondary-foreground: 24 31% 27%;
+    --muted: 54 54% 91%;
+    --muted-foreground: 24 20% 40%;
+    --accent: 30 52% 64%;
+    --accent-foreground: 24 31% 27%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 0%;
-    --input: 0 0% 0%;
-    --ring: 0 0% 0%;
+    --border: 24 31% 27%;
+    --input: 24 31% 27%;
+    --ring: 30 52% 64%;
     --radius: 0px;
   }
 }
 
 @layer base {
   * {
-    @apply border-neo-black;
+    @apply border-neo-dark;
   }
   
   body {
-    @apply bg-neo-white text-neo-black antialiased font-body;
+    @apply bg-neo-cream text-neo-dark antialiased font-body;
     font-family: 'Inter', system-ui, sans-serif;
   }
   
@@ -48,56 +64,64 @@
 @layer components {
   /* Neo-Brutalist Card */
   .neo-card {
-    @apply bg-neo-white border-[3px] border-neo-black shadow-neo;
+    @apply bg-neo-cream border-[3px] border-neo-dark shadow-neo;
   }
   
-  .neo-card-orange {
-    @apply bg-neo-orange border-[3px] border-neo-black shadow-neo text-neo-black;
+  .neo-card-sage {
+    @apply bg-neo-sage border-[3px] border-neo-dark shadow-neo text-neo-dark;
   }
   
-  .neo-card-green {
-    @apply bg-neo-green border-[3px] border-neo-black shadow-neo text-neo-black;
+  .neo-card-mint {
+    @apply bg-neo-mint border-[3px] border-neo-dark shadow-neo text-neo-dark;
   }
   
-  .neo-card-purple {
-    @apply bg-neo-purple border-[3px] border-neo-black shadow-neo text-neo-white;
+  .neo-card-wheat {
+    @apply bg-neo-wheat border-[3px] border-neo-dark shadow-neo text-neo-dark;
   }
   
-  .neo-card-black {
-    @apply bg-neo-black border-[3px] border-neo-black shadow-neo-lg text-neo-white;
+  .neo-card-caramel {
+    @apply bg-neo-caramel border-[3px] border-neo-dark shadow-neo text-neo-cream;
+  }
+  
+  .neo-card-dark {
+    @apply bg-neo-dark border-[3px] border-neo-dark shadow-neo-lg text-neo-cream;
   }
 
   /* Neo-Brutalist Button */
   .neo-btn {
     @apply inline-flex items-center justify-center px-6 py-3 
-           bg-neo-white border-[3px] border-neo-black shadow-neo
-           font-heading font-bold text-neo-black uppercase tracking-wide
+           bg-neo-cream border-[3px] border-neo-dark shadow-neo
+           font-heading font-bold text-neo-dark uppercase tracking-wide
            transition-all duration-150
            hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-neo-hover
            active:translate-x-[4px] active:translate-y-[4px] active:shadow-none
            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-neo;
   }
   
-  .neo-btn-orange {
-    @apply neo-btn bg-neo-orange text-neo-black;
+  .neo-btn-sage {
+    @apply neo-btn bg-neo-sage text-neo-dark;
   }
   
-  .neo-btn-green {
-    @apply neo-btn bg-neo-green text-neo-black;
+  .neo-btn-mint {
+    @apply neo-btn bg-neo-mint text-neo-dark;
   }
   
-  .neo-btn-purple {
-    @apply neo-btn bg-neo-purple text-neo-white;
+  .neo-btn-wheat {
+    @apply neo-btn bg-neo-wheat text-neo-dark;
   }
   
-  .neo-btn-black {
-    @apply neo-btn bg-neo-black text-neo-white;
+  .neo-btn-caramel {
+    @apply neo-btn bg-neo-caramel text-neo-cream;
+  }
+  
+  .neo-btn-dark {
+    @apply neo-btn bg-neo-dark text-neo-cream;
   }
 
   /* Neo-Brutalist Input */
   .neo-input {
-    @apply w-full px-4 py-3 bg-neo-white border-[3px] border-neo-black 
-           font-body text-neo-black placeholder:text-gray-400
+    @apply w-full px-4 py-3 bg-neo-cream border-[3px] border-neo-dark 
+           font-body text-neo-dark placeholder:text-neo-dark/50
            focus:outline-none focus:ring-0 focus:shadow-neo-lg
            transition-shadow duration-150;
   }
@@ -109,49 +133,53 @@
   /* Neo-Brutalist Badge */
   .neo-badge {
     @apply inline-flex items-center gap-1.5 px-3 py-1 
-           border-[2px] border-neo-black font-heading font-bold text-sm uppercase;
+           border-[2px] border-neo-dark font-heading font-bold text-sm uppercase;
   }
   
-  .neo-badge-orange {
-    @apply neo-badge bg-neo-orange text-neo-black;
+  .neo-badge-sage {
+    @apply neo-badge bg-neo-sage text-neo-dark;
   }
   
-  .neo-badge-green {
-    @apply neo-badge bg-neo-green text-neo-black;
+  .neo-badge-mint {
+    @apply neo-badge bg-neo-mint text-neo-dark;
   }
   
-  .neo-badge-purple {
-    @apply neo-badge bg-neo-purple text-neo-white;
+  .neo-badge-wheat {
+    @apply neo-badge bg-neo-wheat text-neo-dark;
+  }
+  
+  .neo-badge-caramel {
+    @apply neo-badge bg-neo-caramel text-neo-cream;
   }
 
   /* Animated Alert Banner */
   .neo-alert-banner {
-    @apply w-full bg-neo-orange border-y-[3px] border-neo-black py-2 overflow-hidden;
+    @apply w-full bg-neo-caramel border-y-[3px] border-neo-dark py-2 overflow-hidden;
   }
   
   .neo-alert-text {
-    @apply inline-block whitespace-nowrap font-heading font-bold text-neo-black uppercase tracking-wider animate-marquee;
+    @apply inline-block whitespace-nowrap font-heading font-bold text-neo-cream uppercase tracking-wider animate-marquee;
   }
 
   /* Status Badges */
   .neo-status {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 border-[2px] border-neo-black font-bold text-xs uppercase;
+    @apply inline-flex items-center gap-1.5 px-3 py-1 border-[2px] border-neo-dark font-bold text-xs uppercase;
   }
   
   .neo-status-pending {
-    @apply neo-status bg-yellow-300;
+    @apply neo-status bg-neo-wheat text-neo-dark;
   }
   
   .neo-status-success {
-    @apply neo-status bg-neo-green;
+    @apply neo-status bg-neo-sage text-neo-dark;
   }
   
   .neo-status-error {
-    @apply neo-status bg-red-400;
+    @apply neo-status bg-red-400 text-white;
   }
   
   .neo-status-info {
-    @apply neo-status bg-neo-purple text-neo-white;
+    @apply neo-status bg-neo-caramel text-neo-cream;
   }
 
   /* Shake Animation for Dangerous Actions */
@@ -161,7 +189,7 @@
 
   /* Section Divider */
   .neo-divider {
-    @apply w-full h-[3px] bg-neo-black;
+    @apply w-full h-[3px] bg-neo-dark;
   }
 }
 
@@ -172,18 +200,18 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-neo-white border-l-[3px] border-neo-black;
+  @apply bg-neo-cream border-l-[3px] border-neo-dark;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-neo-black;
+  @apply bg-neo-dark;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-800;
+  @apply bg-neo-caramel;
 }
 
 /* Selection */
 ::selection {
-  @apply bg-neo-orange text-neo-black;
+  @apply bg-neo-caramel text-neo-cream;
 }

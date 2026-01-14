@@ -4,7 +4,7 @@ import AlertBanner from './AlertBanner';
 
 export default function Layout({ children, showAlert = false }) {
   return (
-    <div className="min-h-screen flex flex-col bg-neo-white">
+    <div className="min-h-screen flex flex-col bg-neo-cream">
       <Navbar />
       {showAlert && <AlertBanner />}
       <main className="flex-1">

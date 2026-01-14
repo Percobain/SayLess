@@ -5,17 +5,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Neo-Brutalism palette
+        // Earthy Color Palette from Coolors
         neo: {
-          black: '#000000',
-          white: '#ffffff',
-          orange: '#ff4d00',
-          green: '#00ff9c',
-          purple: '#6b4eff',
+          sage: '#CCD5AE',       // Sage green
+          mint: '#E9EDC9',       // Light sage/mint
+          cream: '#FEFAE0',      // Cream (background)
+          wheat: '#FAEDCD',      // Wheat/beige
+          caramel: '#D4A373',    // Caramel/tan (accent)
+          dark: '#5C4033',       // Dark brown for text
         },
+        // Semantic aliases
+        primary: '#D4A373',
+        secondary: '#CCD5AE',
+        accent: '#D4A373',
+        background: '#FEFAE0',
         // Legacy colors for compatibility
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
@@ -24,21 +28,9 @@ export default {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))'
         },
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
-        },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))'
-        },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))'
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))'
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
@@ -54,13 +46,12 @@ export default {
         sm: 'calc(var(--radius) - 4px)'
       },
       boxShadow: {
-        'neo': '4px 4px 0px 0px #000000',
-        'neo-lg': '6px 6px 0px 0px #000000',
-        'neo-xl': '8px 8px 0px 0px #000000',
-        'neo-hover': '2px 2px 0px 0px #000000',
-        'neo-orange': '4px 4px 0px 0px #ff4d00',
-        'neo-green': '4px 4px 0px 0px #00ff9c',
-        'neo-purple': '4px 4px 0px 0px #6b4eff',
+        'neo': '4px 4px 0px 0px #5C4033',
+        'neo-lg': '6px 6px 0px 0px #5C4033',
+        'neo-xl': '8px 8px 0px 0px #5C4033',
+        'neo-hover': '2px 2px 0px 0px #5C4033',
+        'neo-caramel': '4px 4px 0px 0px #D4A373',
+        'neo-sage': '4px 4px 0px 0px #CCD5AE',
       },
       fontFamily: {
         heading: ['Space Grotesk', 'sans-serif'],
@@ -70,6 +61,7 @@ export default {
         'shake': 'shake 0.5s ease-in-out',
         'marquee': 'marquee 20s linear infinite',
         'pulse-slow': 'pulse 3s ease-in-out infinite',
+        'float': 'float 6s ease-in-out infinite',
       },
       keyframes: {
         shake: {
@@ -80,6 +72,10 @@ export default {
         marquee: {
           '0%': { transform: 'translateX(0%)' },
           '100%': { transform: 'translateX(-50%)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
         },
       },
     },

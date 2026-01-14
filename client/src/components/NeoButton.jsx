@@ -2,10 +2,11 @@ import { forwardRef } from 'react';
 
 const variants = {
   default: 'neo-btn',
-  orange: 'neo-btn-orange',
-  green: 'neo-btn-green',
-  purple: 'neo-btn-purple',
-  black: 'neo-btn-black',
+  sage: 'neo-btn-sage',
+  mint: 'neo-btn-mint',
+  wheat: 'neo-btn-wheat',
+  caramel: 'neo-btn-caramel',
+  dark: 'neo-btn-dark',
 };
 
 const sizes = {
