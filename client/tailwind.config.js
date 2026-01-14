@@ -5,20 +5,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Earthy Color Palette from Coolors
+        // Professional Color Palette from Coolors
         neo: {
-          sage: '#CCD5AE',       // Sage green
-          mint: '#E9EDC9',       // Light sage/mint
-          cream: '#FEFAE0',      // Cream (background)
-          wheat: '#FAEDCD',      // Wheat/beige
-          caramel: '#D4A373',    // Caramel/tan (accent)
-          dark: '#5C4033',       // Dark brown for text
+          navy: '#001524',       // Dark navy
+          teal: '#15616D',       // Teal
+          cream: '#FFECD1',      // Cream (background)
+          orange: '#FF7D00',     // Orange (accent)
+          maroon: '#78290F',     // Dark red/maroon
         },
         // Semantic aliases
-        primary: '#D4A373',
-        secondary: '#CCD5AE',
-        accent: '#D4A373',
-        background: '#FEFAE0',
+        primary: '#FF7D00',
+        secondary: '#15616D',
+        accent: '#FF7D00',
+        background: '#FFECD1',
         // Legacy colors for compatibility
         card: {
           DEFAULT: 'hsl(var(--card))',
@@ -46,12 +45,12 @@ export default {
         sm: 'calc(var(--radius) - 4px)'
       },
       boxShadow: {
-        'neo': '4px 4px 0px 0px #5C4033',
-        'neo-lg': '6px 6px 0px 0px #5C4033',
-        'neo-xl': '8px 8px 0px 0px #5C4033',
-        'neo-hover': '2px 2px 0px 0px #5C4033',
-        'neo-caramel': '4px 4px 0px 0px #D4A373',
-        'neo-sage': '4px 4px 0px 0px #CCD5AE',
+        'neo': '4px 4px 0px 0px #001524',
+        'neo-lg': '6px 6px 0px 0px #001524',
+        'neo-xl': '8px 8px 0px 0px #001524',
+        'neo-hover': '2px 2px 0px 0px #001524',
+        'neo-orange': '4px 4px 0px 0px #FF7D00',
+        'neo-teal': '4px 4px 0px 0px #15616D',
       },
       fontFamily: {
         heading: ['Space Grotesk', 'sans-serif'],

@@ -4,54 +4,52 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Earthy Color Palette:
-   Sage:    #CCD5AE (sage green)
-   Mint:    #E9EDC9 (light sage)
-   Cream:   #FEFAE0 (background)
-   Wheat:   #FAEDCD (beige)
-   Caramel: #D4A373 (accent)
-   Dark:    #5C4033 (brown text)
+/* Professional Color Palette:
+   Navy:   #001524 (dark navy)
+   Teal:   #15616D (teal)
+   Cream:  #FFECD1 (background)
+   Orange: #FF7D00 (accent)
+   Maroon: #78290F (dark red)
 */
 
 @layer base {
   :root {
-    --color-sage: #CCD5AE;
-    --color-mint: #E9EDC9;
-    --color-cream: #FEFAE0;
-    --color-wheat: #FAEDCD;
-    --color-caramel: #D4A373;
-    --color-dark: #5C4033;
+    --color-navy: #001524;
+    --color-teal: #15616D;
+    --color-cream: #FFECD1;
+    --color-orange: #FF7D00;
+    --color-maroon: #78290F;
     
-    --background: 50 100% 94%;
-    --foreground: 24 31% 27%;
-    --card: 50 100% 94%;
-    --card-foreground: 24 31% 27%;
-    --popover: 50 100% 94%;
-    --popover-foreground: 24 31% 27%;
-    --primary: 30 52% 64%;
-    --primary-foreground: 50 100% 94%;
-    --secondary: 75 35% 76%;
-    --secondary-foreground: 24 31% 27%;
-    --muted: 54 54% 91%;
-    --muted-foreground: 24 20% 40%;
-    --accent: 30 52% 64%;
-    --accent-foreground: 24 31% 27%;
+    --background: 36 100% 91%;
+    --foreground: 200 100% 7%;
+    --card: 36 100% 91%;
+    --card-foreground: 200 100% 7%;
+    --popover: 36 100% 91%;
+    --popover-foreground: 200 100% 7%;
+    --primary: 30 100% 50%;
+    --primary-foreground: 36 100% 91%;
+    --secondary: 186 67% 25%;
+    --secondary-foreground: 36 100% 91%;
+    --muted: 36 50% 85%;
+    --muted-foreground: 200 50% 30%;
+    --accent: 30 100% 50%;
+    --accent-foreground: 200 100% 7%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 24 31% 27%;
-    --input: 24 31% 27%;
-    --ring: 30 52% 64%;
+    --border: 200 100% 7%;
+    --input: 200 100% 7%;
+    --ring: 30 100% 50%;
     --radius: 0px;
   }
 }
 
 @layer base {
   * {
-    @apply border-neo-dark;
+    @apply border-neo-navy;
   }
   
   body {
-    @apply bg-neo-cream text-neo-dark antialiased font-body;
+    @apply bg-neo-cream text-neo-navy antialiased font-body;
     font-family: 'Inter', system-ui, sans-serif;
   }
   
@@ -64,64 +62,56 @@
 @layer components {
   /* Neo-Brutalist Card */
   .neo-card {
-    @apply bg-neo-cream border-[3px] border-neo-dark shadow-neo;
+    @apply bg-neo-cream border-[3px] border-neo-navy shadow-neo;
   }
   
-  .neo-card-sage {
-    @apply bg-neo-sage border-[3px] border-neo-dark shadow-neo text-neo-dark;
+  .neo-card-teal {
+    @apply bg-neo-teal border-[3px] border-neo-navy shadow-neo text-neo-cream;
   }
   
-  .neo-card-mint {
-    @apply bg-neo-mint border-[3px] border-neo-dark shadow-neo text-neo-dark;
+  .neo-card-orange {
+    @apply bg-neo-orange border-[3px] border-neo-navy shadow-neo text-neo-navy;
   }
   
-  .neo-card-wheat {
-    @apply bg-neo-wheat border-[3px] border-neo-dark shadow-neo text-neo-dark;
+  .neo-card-maroon {
+    @apply bg-neo-maroon border-[3px] border-neo-navy shadow-neo text-neo-cream;
   }
   
-  .neo-card-caramel {
-    @apply bg-neo-caramel border-[3px] border-neo-dark shadow-neo text-neo-cream;
-  }
-  
-  .neo-card-dark {
-    @apply bg-neo-dark border-[3px] border-neo-dark shadow-neo-lg text-neo-cream;
+  .neo-card-navy {
+    @apply bg-neo-navy border-[3px] border-neo-navy shadow-neo-lg text-neo-cream;
   }
 
   /* Neo-Brutalist Button */
   .neo-btn {
     @apply inline-flex items-center justify-center px-6 py-3 
-           bg-neo-cream border-[3px] border-neo-dark shadow-neo
-           font-heading font-bold text-neo-dark uppercase tracking-wide
+           bg-neo-cream border-[3px] border-neo-navy shadow-neo
+           font-heading font-bold text-neo-navy uppercase tracking-wide
            transition-all duration-150
            hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-neo-hover
            active:translate-x-[4px] active:translate-y-[4px] active:shadow-none
            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-neo;
   }
   
-  .neo-btn-sage {
-    @apply neo-btn bg-neo-sage text-neo-dark;
+  .neo-btn-teal {
+    @apply neo-btn bg-neo-teal text-neo-cream;
   }
   
-  .neo-btn-mint {
-    @apply neo-btn bg-neo-mint text-neo-dark;
+  .neo-btn-orange {
+    @apply neo-btn bg-neo-orange text-neo-navy;
   }
   
-  .neo-btn-wheat {
-    @apply neo-btn bg-neo-wheat text-neo-dark;
+  .neo-btn-maroon {
+    @apply neo-btn bg-neo-maroon text-neo-cream;
   }
   
-  .neo-btn-caramel {
-    @apply neo-btn bg-neo-caramel text-neo-cream;
-  }
-  
-  .neo-btn-dark {
-    @apply neo-btn bg-neo-dark text-neo-cream;
+  .neo-btn-navy {
+    @apply neo-btn bg-neo-navy text-neo-cream;
   }
 
   /* Neo-Brutalist Input */
   .neo-input {
-    @apply w-full px-4 py-3 bg-neo-cream border-[3px] border-neo-dark 
-           font-body text-neo-dark placeholder:text-neo-dark/50
+    @apply w-full px-4 py-3 bg-neo-cream border-[3px] border-neo-navy 
+           font-body text-neo-navy placeholder:text-neo-navy/50
            focus:outline-none focus:ring-0 focus:shadow-neo-lg
            transition-shadow duration-150;
   }
@@ -133,53 +123,53 @@
   /* Neo-Brutalist Badge */
   .neo-badge {
     @apply inline-flex items-center gap-1.5 px-3 py-1 
-           border-[2px] border-neo-dark font-heading font-bold text-sm uppercase;
+           border-[2px] border-neo-navy font-heading font-bold text-sm uppercase;
   }
   
-  .neo-badge-sage {
-    @apply neo-badge bg-neo-sage text-neo-dark;
+  .neo-badge-teal {
+    @apply neo-badge bg-neo-teal text-neo-cream;
   }
   
-  .neo-badge-mint {
-    @apply neo-badge bg-neo-mint text-neo-dark;
+  .neo-badge-orange {
+    @apply neo-badge bg-neo-orange text-neo-navy;
   }
   
-  .neo-badge-wheat {
-    @apply neo-badge bg-neo-wheat text-neo-dark;
+  .neo-badge-maroon {
+    @apply neo-badge bg-neo-maroon text-neo-cream;
   }
   
-  .neo-badge-caramel {
-    @apply neo-badge bg-neo-caramel text-neo-cream;
+  .neo-badge-navy {
+    @apply neo-badge bg-neo-navy text-neo-cream;
   }
 
   /* Animated Alert Banner */
   .neo-alert-banner {
-    @apply w-full bg-neo-caramel border-y-[3px] border-neo-dark py-2 overflow-hidden;
+    @apply w-full bg-neo-orange border-y-[3px] border-neo-navy py-2 overflow-hidden;
   }
   
   .neo-alert-text {
-    @apply inline-block whitespace-nowrap font-heading font-bold text-neo-cream uppercase tracking-wider animate-marquee;
+    @apply inline-block whitespace-nowrap font-heading font-bold text-neo-navy uppercase tracking-wider animate-marquee;
   }
 
   /* Status Badges */
   .neo-status {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 border-[2px] border-neo-dark font-bold text-xs uppercase;
+    @apply inline-flex items-center gap-1.5 px-3 py-1 border-[2px] border-neo-navy font-bold text-xs uppercase;
   }
   
   .neo-status-pending {
-    @apply neo-status bg-neo-wheat text-neo-dark;
+    @apply neo-status bg-neo-orange text-neo-navy;
   }
   
   .neo-status-success {
-    @apply neo-status bg-neo-sage text-neo-dark;
+    @apply neo-status bg-neo-teal text-neo-cream;
   }
   
   .neo-status-error {
-    @apply neo-status bg-red-400 text-white;
+    @apply neo-status bg-neo-maroon text-neo-cream;
   }
   
   .neo-status-info {
-    @apply neo-status bg-neo-caramel text-neo-cream;
+    @apply neo-status bg-neo-navy text-neo-cream;
   }
 
   /* Shake Animation for Dangerous Actions */
@@ -189,7 +179,7 @@
 
   /* Section Divider */
   .neo-divider {
-    @apply w-full h-[3px] bg-neo-dark;
+    @apply w-full h-[3px] bg-neo-navy;
   }
 }
 
@@ -200,18 +190,18 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-neo-cream border-l-[3px] border-neo-dark;
+  @apply bg-neo-cream border-l-[3px] border-neo-navy;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-neo-dark;
+  @apply bg-neo-navy;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-neo-caramel;
+  @apply bg-neo-teal;
 }
 
 /* Selection */
 ::selection {
-  @apply bg-neo-caramel text-neo-cream;
+  @apply bg-neo-orange text-neo-navy;
 }

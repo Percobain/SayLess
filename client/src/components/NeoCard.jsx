@@ -1,10 +1,9 @@
 const variants = {
   default: 'neo-card',
-  sage: 'neo-card-sage',
-  mint: 'neo-card-mint',
-  wheat: 'neo-card-wheat',
-  caramel: 'neo-card-caramel',
-  dark: 'neo-card-dark',
+  teal: 'neo-card-teal',
+  orange: 'neo-card-orange',
+  maroon: 'neo-card-maroon',
+  navy: 'neo-card-navy',
 };
 
 export default function NeoCard({ 

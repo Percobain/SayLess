@@ -15,16 +15,16 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-neo-cream border-b-[3px] border-neo-dark">
+    <nav className="bg-neo-cream border-b-[3px] border-neo-navy">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="neo-badge-caramel">
+            <div className="neo-badge-orange">
               <Shield className="w-5 h-5" />
             </div>
-            <span className="font-heading text-2xl font-bold tracking-tight text-neo-dark">
-              SAY<span className="text-neo-caramel">LESS</span>
+            <span className="font-heading text-2xl font-bold tracking-tight text-neo-navy">
+              SAY<span className="text-neo-orange">LESS</span>
             </span>
           </Link>
 
@@ -40,10 +40,10 @@ export default function Navbar() {
                   to={link.path}
                   className={`
                     px-4 py-2 font-heading font-bold text-sm uppercase tracking-wide
-                    border-[2px] border-neo-dark transition-all duration-150
+                    border-[2px] border-neo-navy transition-all duration-150
                     ${isActive 
-                      ? 'bg-neo-dark text-neo-cream' 
-                      : 'bg-neo-cream text-neo-dark hover:bg-neo-sage hover:translate-x-[1px] hover:translate-y-[1px]'
+                      ? 'bg-neo-navy text-neo-cream' 
+                      : 'bg-neo-cream text-neo-navy hover:bg-neo-orange hover:translate-x-[1px] hover:translate-y-[1px]'
                     }
                   `}
                 >
@@ -67,7 +67,7 @@ export default function Navbar() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t-[3px] border-neo-dark py-4 space-y-2">
+          <div className="md:hidden border-t-[3px] border-neo-navy py-4 space-y-2">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
               const Icon = link.icon;
@@ -79,10 +79,10 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`
                     block w-full px-4 py-3 font-heading font-bold text-sm uppercase tracking-wide
-                    border-[3px] border-neo-dark transition-all duration-150
+                    border-[3px] border-neo-navy transition-all duration-150
                     ${isActive 
-                      ? 'bg-neo-dark text-neo-cream shadow-none' 
-                      : 'bg-neo-cream text-neo-dark shadow-neo hover:bg-neo-sage'
+                      ? 'bg-neo-navy text-neo-cream shadow-none' 
+                      : 'bg-neo-cream text-neo-navy shadow-neo hover:bg-neo-orange'
                     }
                   `}
                 >
