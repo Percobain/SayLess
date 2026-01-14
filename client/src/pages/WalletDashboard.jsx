@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Wallet, Copy, Check, ArrowUpRight, ArrowDownLeft, 
-  Coins, Lock, Download, ExternalLink 
+  Coins, Lock, Download, ExternalLink, TrendingUp, Shield
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
@@ -16,6 +16,8 @@ const mockWallet = {
     eth: '0.0847',
     usdc: '125.50',
   },
+  pendingRewards: '0.012',
+  stakedAmount: '0.025',
 };
 
 const mockTransactions = [
@@ -37,142 +39,207 @@ export default function WalletDashboard() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-heading font-bold mb-4">
-            Wallet Dashboard
-          </h1>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            Your anonymous custodial wallet. Stake reports and claim rewards.
-          </p>
-        </div>
-
-        <div className="max-w-4xl mx-auto">
-          {/* Wallet Address */}
-          <NeoCard variant="black" className="p-6 mb-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-neo-purple border-[3px] border-neo-white flex items-center justify-center">
-                  <Wallet className="w-7 h-7 text-neo-white" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 uppercase">Wallet Address</p>
-                  <p className="font-mono font-bold text-neo-white text-lg">{mockWallet.address}</p>
-                </div>
-              </div>
-              <button
-                onClick={copyAddress}
-                className="p-3 hover:bg-gray-800 rounded transition-colors"
-              >
-                {copied ? (
-                  <Check className="w-6 h-6 text-neo-green" />
-                ) : (
-                  <Copy className="w-6 h-6 text-gray-400" />
-                )}
-              </button>
-            </div>
-          </NeoCard>
-
-          {/* Balances */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <NeoCard className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-gray-500 uppercase font-bold">ETH Balance</p>
-                <div className="w-10 h-10 bg-blue-500 border-[3px] border-neo-black flex items-center justify-center">
-                  <span className="text-neo-white font-bold">Ξ</span>
-                </div>
-              </div>
-              <p className="text-4xl font-heading font-bold">{mockWallet.balances.eth}</p>
-              <p className="text-gray-500 text-sm">≈ $254.23 USD</p>
-            </NeoCard>
-
-            <NeoCard className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-gray-500 uppercase font-bold">USDC Balance</p>
-                <div className="w-10 h-10 bg-neo-green border-[3px] border-neo-black flex items-center justify-center">
-                  <span className="text-neo-black font-bold">$</span>
-                </div>
-              </div>
-              <p className="text-4xl font-heading font-bold">{mockWallet.balances.usdc}</p>
-              <p className="text-gray-500 text-sm">Stablecoin</p>
-            </NeoCard>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="grid sm:grid-cols-3 gap-4 mb-8">
-            <NeoButton variant="orange" size="lg" className="w-full">
-              <Lock className="w-5 h-5 mr-2" />
-              Stake ETH
-            </NeoButton>
-            <NeoButton variant="green" size="lg" className="w-full">
-              <Coins className="w-5 h-5 mr-2" />
-              Claim Rewards
-            </NeoButton>
-            <NeoButton variant="purple" size="lg" className="w-full">
-              <Download className="w-5 h-5 mr-2" />
-              Export Wallet
-            </NeoButton>
-          </div>
-
-          {/* Transaction History */}
-          <NeoCard className="overflow-hidden">
-            <div className="p-4 border-b-[3px] border-neo-black bg-gray-100">
-              <h2 className="font-heading font-bold text-lg">Transaction History</h2>
-            </div>
-            <div className="divide-y-[2px] divide-neo-black">
-              {mockTransactions.map((tx) => (
-                <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
-                  <div className="flex items-center gap-4">
-                    <div className={`
-                      w-10 h-10 border-[3px] border-neo-black flex items-center justify-center
-                      ${tx.type === 'reward' ? 'bg-neo-green' : 'bg-neo-orange'}
-                    `}>
-                      {tx.type === 'reward' ? (
-                        <ArrowDownLeft className="w-5 h-5 text-neo-black" />
-                      ) : (
-                        <ArrowUpRight className="w-5 h-5 text-neo-black" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-bold">{tx.label}</p>
-                      <p className="text-sm text-gray-500">{tx.time}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`font-mono font-bold ${tx.type === 'reward' ? 'text-green-600' : 'text-gray-600'}`}>
-                      {tx.amount}
-                    </p>
-                    <a 
-                      href={`https://sepolia.etherscan.io/tx/${tx.hash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-gray-400 hover:text-neo-orange flex items-center gap-1 justify-end"
-                    >
-                      {tx.hash}
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </NeoCard>
-
-          {/* Info */}
-          <NeoCard variant="black" className="p-4 mt-8">
-            <div className="flex items-start gap-3">
-              <Lock className="w-5 h-5 text-neo-orange flex-shrink-0 mt-0.5" />
+      {/* Hero Header */}
+      <section className="bg-neo-navy py-12 border-b-[4px] border-neo-navy">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
-                <p className="text-neo-white font-bold text-sm">Custodial Wallet</p>
-                <p className="text-gray-400 text-xs mt-1">
-                  This wallet is managed by SAYLESS protocol. You can export your private key at any time.
-                  All transactions are recorded on Ethereum Sepolia testnet.
+                <div className="neo-badge-orange mb-4">
+                  <Wallet className="w-4 h-4" />
+                  Anonymous Wallet
+                </div>
+                <h1 className="text-4xl md:text-5xl font-heading font-bold text-neo-cream mb-2">
+                  Wallet Dashboard
+                </h1>
+                <p className="text-neo-cream/60">
+                  Stake reports and claim your rewards
                 </p>
               </div>
+
+              {/* Wallet Address Card */}
+              <NeoCard className="p-4 bg-neo-teal border-neo-teal">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-neo-orange flex items-center justify-center">
+                    <Wallet className="w-5 h-5 text-neo-navy" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-neo-cream/70 uppercase">Address</p>
+                    <p className="font-mono font-bold text-neo-cream">{mockWallet.address}</p>
+                  </div>
+                  <button
+                    onClick={copyAddress}
+                    className="ml-2 p-2 hover:bg-neo-navy/20 transition-colors"
+                  >
+                    {copied ? (
+                      <Check className="w-5 h-5 text-neo-orange" />
+                    ) : (
+                      <Copy className="w-5 h-5 text-neo-cream" />
+                    )}
+                  </button>
+                </div>
+              </NeoCard>
             </div>
-          </NeoCard>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Balance Cards */}
+      <section className="bg-neo-cream border-b-[4px] border-neo-navy">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x-[3px] divide-neo-navy">
+            <div className="py-6 text-center">
+              <p className="text-4xl font-heading font-bold text-neo-navy">{mockWallet.balances.eth}</p>
+              <p className="text-sm text-neo-navy/60">ETH Balance</p>
+            </div>
+            <div className="py-6 text-center">
+              <p className="text-4xl font-heading font-bold text-neo-teal">${mockWallet.balances.usdc}</p>
+              <p className="text-sm text-neo-navy/60">USDC Balance</p>
+            </div>
+            <div className="py-6 text-center">
+              <p className="text-4xl font-heading font-bold text-neo-orange">{mockWallet.pendingRewards}</p>
+              <p className="text-sm text-neo-navy/60">Pending Rewards</p>
+            </div>
+            <div className="py-6 text-center">
+              <p className="text-4xl font-heading font-bold text-neo-maroon">{mockWallet.stakedAmount}</p>
+              <p className="text-sm text-neo-navy/60">Staked</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <section className="py-12 bg-neo-cream">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Left Column - Actions & Transactions */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Action Buttons */}
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <NeoButton variant="orange" size="lg" className="w-full">
+                    <Lock className="w-5 h-5 mr-2" />
+                    Stake ETH
+                  </NeoButton>
+                  <NeoButton variant="teal" size="lg" className="w-full">
+                    <Coins className="w-5 h-5 mr-2" />
+                    Claim Rewards
+                  </NeoButton>
+                  <NeoButton variant="navy" size="lg" className="w-full">
+                    <Download className="w-5 h-5 mr-2" />
+                    Export Key
+                  </NeoButton>
+                </div>
+
+                {/* Transaction History */}
+                <NeoCard className="overflow-hidden">
+                  <div className="p-4 border-b-[3px] border-neo-navy bg-neo-navy">
+                    <h2 className="font-heading font-bold text-lg text-neo-cream">Transaction History</h2>
+                  </div>
+                  <div className="divide-y-[2px] divide-neo-navy">
+                    {mockTransactions.map((tx) => (
+                      <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-neo-cream/50">
+                        <div className="flex items-center gap-4">
+                          <div className={`
+                            w-10 h-10 border-[3px] border-neo-navy flex items-center justify-center
+                            ${tx.type === 'reward' ? 'bg-neo-teal' : 'bg-neo-orange'}
+                          `}>
+                            {tx.type === 'reward' ? (
+                              <ArrowDownLeft className={`w-5 h-5 ${tx.type === 'reward' ? 'text-neo-cream' : 'text-neo-navy'}`} />
+                            ) : (
+                              <ArrowUpRight className="w-5 h-5 text-neo-navy" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-bold text-neo-navy">{tx.label}</p>
+                            <p className="text-sm text-neo-navy/60">{tx.time}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-mono font-bold ${tx.type === 'reward' ? 'text-neo-teal' : 'text-neo-maroon'}`}>
+                            {tx.amount}
+                          </p>
+                          <a 
+                            href={`https://sepolia.etherscan.io/tx/${tx.hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-neo-navy/50 hover:text-neo-orange flex items-center gap-1 justify-end"
+                          >
+                            {tx.hash}
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-3 border-t-[2px] border-neo-navy text-center">
+                    <a href="#" className="text-sm font-bold text-neo-teal hover:text-neo-orange">
+                      View All Transactions →
+                    </a>
+                  </div>
+                </NeoCard>
+              </div>
+
+              {/* Right Column - Info Cards */}
+              <div className="space-y-6">
+                {/* Balance Summary */}
+                <NeoCard variant="navy" className="p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-neo-orange flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-neo-navy" />
+                    </div>
+                    <h3 className="font-heading font-bold text-neo-cream">Total Value</h3>
+                  </div>
+                  <p className="text-4xl font-heading font-bold text-neo-orange mb-1">$379.73</p>
+                  <p className="text-neo-cream/60 text-sm">≈ 0.1097 ETH + 125.50 USDC</p>
+                  <div className="mt-4 p-3 bg-neo-teal/20">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-neo-cream/70">24h Change</span>
+                      <span className="text-neo-teal font-bold">+$12.45 (3.4%)</span>
+                    </div>
+                  </div>
+                </NeoCard>
+
+                {/* Staking Info */}
+                <NeoCard variant="teal" className="p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-neo-orange flex items-center justify-center">
+                      <Lock className="w-5 h-5 text-neo-navy" />
+                    </div>
+                    <h3 className="font-heading font-bold text-neo-cream">Staking</h3>
+                  </div>
+                  <ul className="space-y-2 text-sm text-neo-cream/80">
+                    <li className="flex justify-between">
+                      <span>Currently Staked</span>
+                      <span className="font-bold text-neo-cream">{mockWallet.stakedAmount} ETH</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Pending Reports</span>
+                      <span className="font-bold text-neo-cream">2</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Est. Returns</span>
+                      <span className="font-bold text-neo-orange">+0.008 ETH</span>
+                    </li>
+                  </ul>
+                </NeoCard>
+
+                {/* Security Note */}
+                <NeoCard variant="maroon" className="p-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Shield className="w-5 h-5 text-neo-cream" />
+                    <h3 className="font-heading font-bold text-neo-cream">Security</h3>
+                  </div>
+                  <p className="text-neo-cream/80 text-sm">
+                    This is a custodial wallet managed by SAYLESS. You can export your private key at any time.
+                    All transactions are on Ethereum Sepolia testnet.
+                  </p>
+                </NeoCard>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </Layout>
   );
 }
