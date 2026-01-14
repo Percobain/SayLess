@@ -1,0 +1,311 @@
+{
+    "meta": {
+        "spec_version": "1.0.0",
+        "title": "Veil — Anonymous On-Chain Reporting (Frontend-Only)",
+        "author": "Cursor Prompt",
+        "description": "Build a production-quality, frontend-only web app for anonymous reporting with client-side encryption, staking, dashboards, and authority review. Strict Neo-Brutalist design. No real blockchain, wallets, or crypto — use deterministic mock services so the app runs end-to-end for hackathon demo.",
+        "framework": {
+            "name": "React.js",
+            "app_router": true,
+            "typescript": true,
+            "react_server_components": true
+        }
+    },
+    "tech_stack": {
+        "styling": "TailwindCSS (Neo-Brutalism only)",
+        "ui_kit": [
+            "shadcn/ui (primitives only)",
+            "lucide-react (icons)"
+        ],
+        "state": "Zustand (global state) + URLSearchParams",
+        "forms": "react-hook-form + zod",
+        "routing": "React App Router",
+        "mock_api": "Local deterministic mock services (no network required)",
+        "notifications": "sonner",
+        "animation": "framer-motion (subtle only)"
+    },
+    "design_language": {
+        "theme_name": "Neo-Brutalism",
+        "tailwind_overrides": {
+            "theme": {
+                "extend": {
+                    "colors": {
+                        "veil-bg": "#FAFAFA",
+                        "veil-ink": "#0A0A0A",
+                        "veil-accent": "#7C3AED",
+                        "veil-accent-2": "#22D3EE",
+                        "veil-warning": "#F59E0B",
+                        "veil-danger": "#EF4444",
+                        "veil-success": "#10B981",
+                        "veil-muted": "#E5E7EB",
+                        "veil-card": "#FFFFFF"
+                    },
+                    "boxShadow": {
+                        "brutal": "8px 8px 0 0 rgba(0,0,0,0.9)",
+                        "brutal-sm": "4px 4px 0 0 rgba(0,0,0,0.9)"
+                    },
+                    "borderRadius": {
+                        "brutal": "1.25rem"
+                    },
+                    "fontFamily": {
+                        "display": [
+                            "Space Grotesk",
+                            "system-ui",
+                            "sans-serif"
+                        ],
+                        "body": [
+                            "Inter",
+                            "system-ui",
+                            "sans-serif"
+                        ]
+                    }
+                }
+            }
+        },
+        "rules": [
+            "Every card has a 2–3px solid border (#0A0A0A)",
+            "All shadows are offset, never blurred",
+            "No gradients, no glass, no translucency",
+            "Large bold headings, compact readable body text",
+            "Hover lifts (-translate-y-0.5), active presses (translate-y-0)",
+            "Design should feel opinionated, loud, confident, and honest"
+        ]
+    },
+    "app_structure": {
+        "root_layout": {
+            "header": [
+                "Veil logo (text-only, bold)",
+                "Navigation: Report | Dashboard | Authority",
+                "Status badge: 'Frontend Demo'"
+            ],
+            "footer": [
+                "Veil Protocol — Demo UI",
+                "No data leaves this browser",
+                "Version 0.1"
+            ]
+        },
+        "routes": [
+            {
+                "path": "/",
+                "title": "Landing",
+                "purpose": "Explain Veil in one glance and route user to reporting or dashboards.",
+                "sections": [
+                    "Hero headline: 'Report without being seen.'",
+                    "Subheading explaining client-side encryption + on-chain commitment",
+                    "Primary CTA: Start Anonymous Report",
+                    "Secondary CTA: View My Dashboard",
+                    "3 brutal cards: Encrypt in Browser, Commit On-Chain, No Message Required",
+                    "FAQ accordion (static)"
+                ]
+            },
+            {
+                "path": "/report/[sessionId]",
+                "title": "Anonymous Report",
+                "purpose": "Main reporting flow after WhatsApp/SMS session link.",
+                "sections": [
+                    "Session banner showing anonymous session ID",
+                    "Large message composer",
+                    "Encryption visualization",
+                    "Stake confirmation (0.01 ETH demo)",
+                    "Submit action"
+                ]
+            },
+            {
+                "path": "/dashboard",
+                "title": "Client Dashboard",
+                "purpose": "User sees all reports, rewards, penalties, and wallet summary.",
+                "sections": [
+                    "Overview stats (balance, reputation, active reports)",
+                    "Reports table (pending / approved / rejected)",
+                    "Rewards & penalties history",
+                    "Export & key safety panel"
+                ]
+            },
+            {
+                "path": "/authority",
+                "title": "Authority Dashboard",
+                "purpose": "Admin reviews and decides on encrypted reports.",
+                "sections": [
+                    "Reports inbox",
+                    "Selected report detail",
+                    "Approve / Reject actions",
+                    "Mock AI signals panel"
+                ]
+            },
+            {
+                "path": "/demo/silent",
+                "title": "Silent Reporting Demo",
+                "purpose": "Show missed-call reporting primitive visually.",
+                "sections": [
+                    "Missed call timeline",
+                    "Pattern → category mapping",
+                    "Synthetic encrypted report preview",
+                    "On-chain commitment mock"
+                ]
+            }
+        ]
+    },
+    "components": [
+        {
+            "name": "BrutalCard",
+            "purpose": "Primary layout container",
+            "styles": "bg-veil-card border-2 border-veil-ink shadow-brutal rounded-brutal p-6"
+        },
+        {
+            "name": "BrutalButton",
+            "purpose": "Primary and secondary actions",
+            "variants": [
+                "primary",
+                "secondary",
+                "danger"
+            ],
+            "styles": "border-2 border-veil-ink shadow-brutal hover:-translate-y-0.5 active:translate-y-0 transition"
+        },
+        {
+            "name": "MessageComposer",
+            "purpose": "Anonymous report input",
+            "details": [
+                "Large textarea",
+                "Character count",
+                "Disabled until non-empty"
+            ]
+        },
+        {
+            "name": "EncryptionStepper",
+            "purpose": "Visualize encryption pipeline",
+            "steps": [
+                "Generate AES key",
+                "Encrypt report",
+                "Encrypt key with authority",
+                "Upload to IPFS",
+                "Commit hash"
+            ]
+        },
+        {
+            "name": "StakePanel",
+            "purpose": "Show stake lock and explanation",
+            "details": [
+                "Fixed 0.01 ETH (demo)",
+                "Explains spam resistance"
+            ]
+        },
+        {
+            "name": "ReportsTable",
+            "purpose": "List reports with status",
+            "columns": [
+                "Session",
+                "CID Hash",
+                "Status",
+                "Stake",
+                "Outcome"
+            ]
+        },
+        {
+            "name": "AuthorityDecisionPanel",
+            "purpose": "Approve or reject report",
+            "actions": [
+                "Approve → refund + reward",
+                "Reject → slash stake"
+            ]
+        }
+    ],
+    "types": {
+        "Report": {
+            "id": "string",
+            "sessionId": "string",
+            "cidHash": "string",
+            "status": "\"pending\"|\"approved\"|\"rejected\"",
+            "stake": "number",
+            "reward": "number",
+            "createdAt": "string"
+        },
+        "User": {
+            "id": "string",
+            "reputation": "number",
+            "balance": "number"
+        }
+    },
+    "mock_services": {
+        "seed_strategy": "Deterministic seed 'veil-demo'",
+        "modules": [
+            {
+                "name": "reportService",
+                "functions": [
+                    "create(sessionId, encryptedBlob): Report",
+                    "listByUser(): Report[]",
+                    "listAll(): Report[]",
+                    "approve(id): Report",
+                    "reject(id): Report"
+                ]
+            },
+            {
+                "name": "walletService",
+                "functions": [
+                    "getBalance(): number",
+                    "stake(amount): void",
+                    "credit(amount): void",
+                    "debit(amount): void"
+                ]
+            }
+        ]
+    },
+    "ux_flows": {
+        "reporting": [
+            "User opens /report/:sessionId",
+            "Writes report",
+            "Sees encryption steps animate",
+            "Confirms stake",
+            "Report appears as pending"
+        ],
+        "authority": [
+            "Authority opens dashboard",
+            "Selects report",
+            "Reads decrypted mock content",
+            "Approves or rejects"
+        ],
+        "silent": [
+            "Simulate missed call",
+            "Generate report automatically",
+            "Show commitment without message"
+        ]
+    },
+    "accessibility": {
+        "standards": "WCAG 2.1 AA",
+        "requirements": [
+            "Keyboard navigation",
+            "Visible focus outlines",
+            "ARIA labels",
+            "aria-live for encryption progress"
+        ]
+    },
+    "file_structure": {
+        "root": [
+            "app/page.tsx",
+            "app/report/[sessionId]/page.tsx",
+            "app/dashboard/page.tsx",
+            "app/authority/page.tsx",
+            "app/demo/silent/page.tsx",
+            "components/*.tsx",
+            "lib/services/*.ts",
+            "lib/stores/*.ts",
+            "lib/types.ts"
+        ]
+    },
+    "acceptance_criteria": [
+        "All pages compile without TypeScript errors",
+        "Neo-Brutalist visuals are obvious and consistent",
+        "Report flow works end-to-end with mock encryption",
+        "Authority can approve/reject reports",
+        "Silent reporting demo works visually",
+        "No real blockchain or wallet code exists"
+    ],
+    "commands_for_cursor": [
+        "Create React + TypeScript app router project",
+        "Install TailwindCSS and configure theme overrides",
+        "Install zustand, zod, react-hook-form, sonner, framer-motion",
+        "Generate pages and components per file structure",
+        "Implement mock services and seed data",
+        "Wire all flows with visible state changes",
+        "Polish UI for hackathon demo"
+    ]
+}
