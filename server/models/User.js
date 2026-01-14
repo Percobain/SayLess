@@ -18,7 +18,11 @@ const userSchema = new mongoose.Schema({
   },
   privateKey: {
     type: String,
-    required: true
+    default: 'privy-managed'
+  },
+  privyUserId: {
+    type: String,
+    default: null
   },
   reputation: {
     type: Number,
@@ -31,5 +35,3 @@ const userSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('User', userSchema);
-
-

@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 // Import services
 const { initBlockchain } = require('./services/blockchain');
 const { initGemini } = require('./services/gemini');
+const { initPrivy, getFunderBalance } = require('./services/privy');
 
 // Import routes
 const webhookRoutes = require('./routes/webhook');
@@ -61,6 +62,18 @@ async function start() {
     // Initialize blockchain service
     console.log('Initializing blockchain service...');
     initBlockchain();
+    
+    // Initialize Privy wallet service
+    console.log('Initializing Privy wallet service...');
+    initPrivy();
+    
+    // Check funder balance
+    try {
+      const funderBalance = await getFunderBalance();
+      console.log(`Funder wallet balance: ${funderBalance} ETH`);
+    } catch (e) {
+      console.log('Could not check funder balance');
+    }
     
     // Initialize Gemini AI
     console.log('Initializing Gemini AI...');

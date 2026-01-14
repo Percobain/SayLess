@@ -7,7 +7,8 @@ const twilio = require('twilio');
 const User = require('../models/User');
 const Session = require('../models/Session');
 const { ethers } = require('ethers');
-const { getReputation, getRewards, claimRewards, getWalletBalance, fundWallet } = require('../services/blockchain');
+const { getReputation, getRewards, claimRewards, getWalletBalance } = require('../services/blockchain');
+const { createWallet, fundWalletWithEth } = require('../services/privy');
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
@@ -19,15 +20,6 @@ function generateSessionId() {
 // Helper to hash phone number
 function hashPhone(phone) {
   return crypto.createHash('sha256').update(phone + (process.env.PHONE_SALT || 'sayless')).digest('hex');
-}
-
-// Create a new wallet
-function createWallet() {
-  const wallet = ethers.Wallet.createRandom();
-  return {
-    address: wallet.address,
-    privateKey: wallet.privateKey
-  };
 }
 
 // POST /webhook/twilio - Handle WhatsApp/SMS messages
@@ -42,26 +34,31 @@ router.post('/twilio', async (req, res) => {
     
     // REPORT command
     if (command === 'REPORT') {
-      // Find or create user
+      // Find existing user
       let user = await User.findOne({ whatsappHash });
       
       if (!user) {
+        console.log(`[Twilio] Creating new wallet for user`);
+        
         // Create new wallet
         const { address, privateKey } = createWallet();
+        
         user = await User.create({
           whatsappHash,
           odacityUserId: uuid(),
           wallet: address,
           privateKey: privateKey
         });
-        console.log(`[Twilio] Created new user with wallet: ${address}`);
         
-        // Try to fund wallet with some ETH for gas (if deployer has funds)
+        console.log(`[Twilio] Created wallet: ${address}`);
+        
+        // Fund wallet with 0.01 ETH
         try {
-          await fundWallet(address, '0.001');
-          console.log(`[Twilio] Funded wallet with 0.001 ETH`);
-        } catch (e) {
-          console.log(`[Twilio] Could not fund wallet: ${e.message}`);
+          const fundTxHash = await fundWalletWithEth(address, '0.01');
+          console.log(`[Twilio] Funded wallet with 0.01 ETH, tx: ${fundTxHash}`);
+        } catch (fundError) {
+          console.error(`[Twilio] Could not fund wallet: ${fundError.message}`);
+          // Continue even if funding fails
         }
       }
       
@@ -78,6 +75,7 @@ router.post('/twilio', async (req, res) => {
         `🔐 Anonymous Report Session Created\n` +
         `Session ID: ${sessionId}\n\n` +
         `Submit securely:\n${FRONTEND_URL}/r/${sessionId}\n\n` +
+        `💰 Wallet: ${user.wallet.slice(0, 8)}...${user.wallet.slice(-6)}\n` +
         `This link expires in 24 hours.`
       );
     }
@@ -177,7 +175,6 @@ router.post('/twilio', async (req, res) => {
     else if (command === 'EXPORT') {
       const user = await User.findOne({ whatsappHash });
       if (user) {
-        // For hackathon demo - send private key directly (in production, use secure flow)
         twiml.message(
           `🔑 Your Wallet Export\n\n` +
           `Address: ${user.wallet}\n\n` +
@@ -224,5 +221,3 @@ router.post('/twilio', async (req, res) => {
 });
 
 module.exports = router;
-
-
