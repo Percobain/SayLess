@@ -179,6 +179,29 @@ const handleIncomingMessage = async (params) => {
     }
   }
   
+  // SEED command - Fund wallet with 0.01 Sepolia ETH
+  else if (command === 'SEED') {
+    const user = await User.findOne({ whatsappHash });
+    if (user) {
+      try {
+        logger.info(`[WhatsApp Handler] SEED command: Funding wallet ${user.wallet}`);
+        const fundTxHash = await fundWalletWithEth(user.wallet, '0.01');
+        logger.info(`[WhatsApp Handler] SEED successful: ${fundTxHash}`);
+        return `🌱 Wallet Funded!\n\n` +
+               `Amount: 0.01 Sepolia ETH\n` +
+               `Address: ${user.wallet.slice(0, 10)}...${user.wallet.slice(-8)}\n` +
+               `Tx: ${fundTxHash.slice(0, 20)}...\n\n` +
+               `Your wallet has been seeded with Sepolia ETH.`;
+      } catch (fundError) {
+        logger.error(`[WhatsApp Handler] SEED failed: ${fundError.message}`);
+        return `❌ Funding failed: ${fundError.message}\n\n` +
+               `Please try again later.`;
+      }
+    } else {
+      return 'No wallet found. Send REPORT first to create a wallet.';
+    }
+  }
+  
   // HELP command
   else if (command === 'HELP') {
     return `🔐 SayLess Commands\n\n` +
@@ -187,6 +210,7 @@ const handleIncomingMessage = async (params) => {
            `BALANCE - View wallet balance\n` +
            `REWARDS - View pending rewards\n` +
            `CLAIM - Claim your rewards\n` +
+           `SEED - Fund wallet with 0.01 Sepolia ETH\n` +
            `EXPORT - Export wallet info\n` +
            `HELP - This message\n\n` +
            `Your reports are encrypted end-to-end.`;
