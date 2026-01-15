@@ -284,6 +284,3 @@ Create `client/.env`:
 6. Verify a report → show reward becomes claimable → claim via WhatsApp
 
 ---
-
-## License
-MIT
