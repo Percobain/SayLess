@@ -46,13 +46,13 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Disclaimer */}
-          <div>
+          {/* // Disclaimer */}
+          {/* <div>
             <h4 className="font-heading font-bold text-neo-orange mb-4 uppercase">{t('footer.disclaimer')}</h4>
             <p className="text-neo-cream/60 text-sm">
               {t('footer.disclaimerText')}
             </p>
-          </div>
+          </div> */}
         </div>
 
         <div className="neo-divider bg-neo-teal/30 my-8"></div>

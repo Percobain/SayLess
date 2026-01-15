@@ -126,19 +126,19 @@ export default function JuryDashboard() {
   return (
     <Layout>
       {/* Hero Header */}
-      <section className="bg-neo-navy py-12 border-b-[4px] border-neo-navy">
+      <section className="bg-neo-navy py-6 sm:py-12 border-b-[4px] border-neo-navy">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex flex-col gap-4">
               <div>
-                <div className="neo-badge-orange mb-4">
-                  <Scale className="w-4 h-4" />
+                <div className="neo-badge-orange mb-2 sm:mb-4 text-xs sm:text-sm">
+                  <Scale className="w-3 h-3 sm:w-4 sm:h-4" />
                   {t('jury.badge')}
                 </div>
-                <h1 className="text-4xl md:text-5xl font-heading font-bold text-neo-cream mb-2">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-heading font-bold text-neo-cream mb-1 sm:mb-2">
                   {t('jury.title')}
                 </h1>
-                <p className="text-neo-cream/60">
+                <p className="text-sm sm:text-base text-neo-cream/60">
                   {t('jury.subtitle')}
                 </p>
               </div>
@@ -150,22 +150,22 @@ export default function JuryDashboard() {
       {/* User Stats Bar */}
       <section className="bg-neo-teal border-b-[4px] border-neo-navy">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x-[3px] divide-neo-navy">
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-cream">{userRep}</p>
-              <p className="text-sm text-neo-cream/70">{t('jury.yourRep')}</p>
+          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4">
+            <div className="py-3 sm:py-6 text-center border-r-[2px] border-b-[2px] md:border-b-0 border-neo-navy">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-cream">{userRep}</p>
+              <p className="text-xs sm:text-sm text-neo-cream/70">{t('jury.yourRep')}</p>
             </div>
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-orange">{voteWeight}x</p>
-              <p className="text-sm text-neo-cream/70">{t('jury.voteWeight')}</p>
+            <div className="py-3 sm:py-6 text-center border-b-[2px] md:border-b-0 md:border-r-[2px] border-neo-navy">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-orange">{voteWeight}x</p>
+              <p className="text-xs sm:text-sm text-neo-cream/70">{t('jury.voteWeight')}</p>
             </div>
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-cream">{casesJudged}</p>
-              <p className="text-sm text-neo-cream/70">{t('jury.casesJudged')}</p>
+            <div className="py-3 sm:py-6 text-center border-r-[2px] border-neo-navy">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-cream">{casesJudged}</p>
+              <p className="text-xs sm:text-sm text-neo-cream/70">{t('jury.casesJudged')}</p>
             </div>
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-orange">{successRate}%</p>
-              <p className="text-sm text-neo-cream/70">{t('jury.successRate')}</p>
+            <div className="py-3 sm:py-6 text-center">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-orange">{successRate}%</p>
+              <p className="text-xs sm:text-sm text-neo-cream/70">{t('jury.successRate')}</p>
             </div>
           </div>
         </div>
