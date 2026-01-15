@@ -82,3 +82,14 @@ export async function getWalletData(walletAddress) {
   const response = await fetch(`${API_URL}/api/reporter/wallet/${walletAddress}`);
   return response.json();
 }
+
+export async function claimRewards(walletAddress) {
+  const response = await fetch(`${API_URL}/api/reporter/claim-rewards`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ walletAddress })
+  });
+  return response.json();
+}

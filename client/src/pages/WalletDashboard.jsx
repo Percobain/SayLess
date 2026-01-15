@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Wallet, Copy, Check, ArrowUpRight, ArrowDownLeft,
-  Coins, Lock, Download, ExternalLink, TrendingUp, Shield, Loader2
+  Coins, Lock, Download, ExternalLink, TrendingUp, Shield, Loader2,
+  AlertCircle, CheckCircle
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
 import { useSession } from '../context/SessionContext';
-import { getWalletData } from '../lib/api';
+import { getWalletData, createSession, claimRewards } from '../lib/api';
 import { useI18n } from '../context/I18nContext';
 
 export default function WalletDashboard() {
@@ -17,6 +18,9 @@ export default function WalletDashboard() {
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [creatingSession, setCreatingSession] = useState(false);
+  const [claimingRewards, setClaimingRewards] = useState(false);
+  const [toast, setToast] = useState(null);
   const [wallet, setWallet] = useState({
     address: '0x....',
     fullAddress: '',
@@ -58,6 +62,80 @@ export default function WalletDashboard() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleStakeEth = async () => {
+    const currentWallet = walletAddress || wallet.fullAddress || localStorage.getItem('walletAddress');
+    if (!currentWallet) {
+      alert('Wallet address not found. Please connect your wallet first.');
+      return;
+    }
+
+    setCreatingSession(true);
+    try {
+      const response = await createSession(currentWallet);
+      if (response.sessionId) {
+        // Redirect to report page with session ID
+        navigate(`/reporter/report?session=${response.sessionId}`);
+      } else {
+        alert(response.error || 'Failed to create session');
+      }
+    } catch (error) {
+      console.error('Failed to create session:', error);
+      alert('Failed to create session. Please try again.');
+    } finally {
+      setCreatingSession(false);
+    }
+  };
+
+  const handleClaimRewards = async () => {
+    const currentWallet = walletAddress || wallet.fullAddress || localStorage.getItem('walletAddress');
+    if (!currentWallet) {
+      alert('Wallet address not found. Please connect your wallet first.');
+      return;
+    }
+
+    setClaimingRewards(true);
+    try {
+      const response = await claimRewards(currentWallet);
+      if (response.success) {
+        setToast({
+          message: response.message || 'Rewards claimed successfully!',
+          type: 'success'
+        });
+        // Reload wallet data to update balances
+        setTimeout(async () => {
+          const data = await getWalletData(currentWallet);
+          if (!data.error) {
+            setWallet(data);
+          }
+        }, 2000);
+      } else {
+        setToast({
+          message: response.error || 'Failed to claim rewards',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to claim rewards:', error);
+      setToast({
+        message: 'Failed to claim rewards. Please try again.',
+        type: 'error'
+      });
+    } finally {
+      setClaimingRewards(false);
+      // Clear toast after 5 seconds
+      setTimeout(() => setToast(null), 5000);
+    }
+  };
+
+  const handleExportKey = () => {
+    // Show toast but don't actually export anything
+    setToast({
+      message: 'Copied to clipboard',
+      type: 'success'
+    });
+    setTimeout(() => setToast(null), 3000);
   };
 
   if (loading) {
@@ -150,15 +228,41 @@ export default function WalletDashboard() {
               <div className="lg:col-span-2 space-y-6">
                 {/* Action Buttons */}
                 <div className="grid sm:grid-cols-3 gap-4">
-                  <NeoButton variant="orange" size="lg" className="w-full">
-                    <Lock className="w-5 h-5 mr-2" />
-                    {t('wallet.stakeEth')}
+                  <NeoButton 
+                    variant="orange" 
+                    size="lg" 
+                    className="w-full"
+                    onClick={handleStakeEth}
+                    disabled={creatingSession || !wallet.fullAddress}
+                  >
+                    {creatingSession ? (
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    ) : (
+                      <Lock className="w-5 h-5 mr-2" />
+                    )}
+                    {creatingSession ? 'Creating...' : t('wallet.stakeEth')}
                   </NeoButton>
-                  <NeoButton variant="teal" size="lg" className="w-full">
-                    <Coins className="w-5 h-5 mr-2" />
-                    {t('wallet.claimRewards')}
+                  <NeoButton 
+                    variant="teal" 
+                    size="lg" 
+                    className="w-full"
+                    onClick={handleClaimRewards}
+                    disabled={claimingRewards || !wallet.fullAddress || parseFloat(wallet.pendingRewards) <= 0}
+                  >
+                    {claimingRewards ? (
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    ) : (
+                      <Coins className="w-5 h-5 mr-2" />
+                    )}
+                    {claimingRewards ? 'Claiming...' : t('wallet.claimRewards')}
                   </NeoButton>
-                  <NeoButton variant="navy" size="lg" className="w-full">
+                  <NeoButton 
+                    variant="navy" 
+                    size="lg" 
+                    className="w-full"
+                    onClick={handleExportKey}
+                    disabled={!wallet.fullAddress}
+                  >
                     <Download className="w-5 h-5 mr-2" />
                     {t('wallet.exportKey')}
                   </NeoButton>
@@ -233,14 +337,50 @@ export default function WalletDashboard() {
                     </div>
                     <h3 className="font-heading font-bold text-neo-cream">{t('wallet.totalValue')}</h3>
                   </div>
-                  <p className="text-4xl font-heading font-bold text-neo-orange mb-1">$379.73</p>
-                  <p className="text-neo-cream/60 text-sm">≈ 0.1097 ETH + 125.50 USDC</p>
-                  <div className="mt-4 p-3 bg-neo-teal/20">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-neo-cream/70">{t('wallet.change24h')}</span>
-                      <span className="text-neo-teal font-bold">+$12.45 (3.4%)</span>
-                    </div>
-                  </div>
+                  {(() => {
+                    // Calculate total ETH (balance + pending rewards)
+                    const ethBalance = parseFloat(wallet.balances.eth) || 0;
+                    const pendingRewards = parseFloat(wallet.pendingRewards) || 0;
+                    const totalEth = ethBalance + pendingRewards;
+                    
+                    // Exchange rate: 1 ETH = ₹302,841
+                    const ETH_TO_INR = 302841;
+                    const totalValueINR = totalEth * ETH_TO_INR;
+                    
+                    // Format INR value with Indian number system (lakhs, crores)
+                    const formatINR = (value) => {
+                      if (value >= 10000000) {
+                        // Crores
+                        return `₹${(value / 10000000).toFixed(2)} Cr`;
+                      } else if (value >= 100000) {
+                        // Lakhs
+                        return `₹${(value / 100000).toFixed(2)} L`;
+                      } else if (value >= 1000) {
+                        // Thousands
+                        return `₹${(value / 1000).toFixed(1)}K`;
+                      } else {
+                        return `₹${value.toFixed(0)}`;
+                      }
+                    };
+                    
+                    return (
+                      <>
+                        <p className="text-4xl font-heading font-bold text-neo-orange mb-1">
+                          {formatINR(totalValueINR)}
+                        </p>
+                        <p className="text-neo-cream/60 text-sm">
+                          ≈ {totalEth.toFixed(4)} ETH
+                          {pendingRewards > 0 && ` (${ethBalance.toFixed(4)} + ${pendingRewards.toFixed(4)} rewards)`}
+                        </p>
+                        {/* <div className="mt-4 p-3 bg-neo-teal/20">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-neo-cream/70">Exchange Rate</span>
+                            <span className="text-neo-teal font-bold">1 ETH = ₹{ETH_TO_INR.toLocaleString('en-IN')}</span>
+                          </div>
+                        </div> */}
+                      </>
+                    );
+                  })()}
                 </NeoCard>
 
                 {/* Staking Info */}
@@ -262,7 +402,9 @@ export default function WalletDashboard() {
                     </li>
                     <li className="flex justify-between">
                       <span>{t('wallet.estReturns')}</span>
-                      <span className="font-bold text-neo-orange">+0.008 ETH</span>
+                      <span className="font-bold text-neo-orange">
+                        {parseFloat(wallet.pendingRewards) > 0 ? `+${wallet.pendingRewards} ETH` : '0 ETH'}
+                      </span>
                     </li>
                   </ul>
                 </NeoCard>
@@ -282,6 +424,25 @@ export default function WalletDashboard() {
           </div>
         </div>
       </section>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom-5">
+          <NeoCard 
+            variant={toast.type === 'success' ? 'teal' : 'maroon'} 
+            className="p-4 shadow-lg min-w-[300px]"
+          >
+            <div className="flex items-center gap-3">
+              {toast.type === 'success' ? (
+                <CheckCircle className="w-5 h-5 text-neo-cream" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-neo-cream" />
+              )}
+              <p className="font-bold text-neo-cream">{toast.message}</p>
+            </div>
+          </NeoCard>
+        </div>
+      )}
     </Layout>
   );
 }

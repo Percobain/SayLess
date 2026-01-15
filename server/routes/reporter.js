@@ -1,14 +1,22 @@
 import express from 'express';
+import crypto from 'crypto';
+import { v4 as uuid } from 'uuid';
 import Report from '../models/Report.js';
 import Session from '../models/Session.js';
 import User from '../models/User.js';
-import { getReputation, getRewards, getWalletBalance } from '../services/blockchain.js';
+import { getReputation, getRewards, getWalletBalance, claimRewards as blockchainClaimRewards } from '../services/blockchain.js';
+import { createPrivyWallet, fundWalletWithEth } from '../services/privy.js';
 
 const router = express.Router();
 
-// Generate a random session ID
+// Generate a random session ID (5 uppercase alphanumeric characters, matching WhatsApp format)
 function generateSessionId() {
-  return 'SL-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+  for (let i = 0; i < 5; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
 
 // POST /api/reporter/session - Create a new session for a user
@@ -20,10 +28,42 @@ router.post('/session', async (req, res) => {
       return res.status(400).json({ error: 'walletAddress is required' });
     }
     
-    // Find user by wallet
-    const user = await User.findOne({ wallet: walletAddress });
+    // Normalize wallet address (lowercase)
+    const normalizedWallet = walletAddress.toLowerCase();
+    
+    // Find user by wallet (case-insensitive)
+    let user = await User.findOne({ wallet: { $regex: new RegExp(`^${normalizedWallet}$`, 'i') } });
+    
+    // If user doesn't exist, create one (for web-created reports)
     if (!user) {
-      return res.status(404).json({ error: 'User not found for this wallet' });
+      try {
+        // For web users, we need a whatsappHash - use wallet address hash as placeholder
+        // This ensures uniqueness while allowing web users without WhatsApp
+        const whatsappHash = crypto.createHash('sha256').update(`web-${normalizedWallet}`).digest('hex');
+        
+        // Create a user entry with placeholder data for web users
+        // The wallet address itself is the key identifier
+        user = await User.create({
+          whatsappHash, // Use wallet hash as placeholder for web users
+          odacityUserId: uuid(),
+          wallet: normalizedWallet,
+          privyWalletId: `web-${normalizedWallet.slice(2, 22)}` // Use wallet chars as placeholder
+        });
+        
+        console.log(`[Reporter Session] Created user for web wallet: ${normalizedWallet}`);
+      } catch (createError) {
+        console.error('[Reporter Session] Error creating user:', createError);
+        // Check if it's a duplicate key error
+        if (createError.code === 11000) {
+          // Try to find the user again (race condition)
+          user = await User.findOne({ wallet: { $regex: new RegExp(`^${normalizedWallet}$`, 'i') } });
+          if (!user) {
+            return res.status(500).json({ error: 'User creation failed due to duplicate. Please try again.' });
+          }
+        } else {
+          return res.status(500).json({ error: 'Failed to create user. Please send REPORT via WhatsApp first to create your account.' });
+        }
+      }
     }
     
     // Create new session
@@ -34,6 +74,8 @@ router.post('/session', async (req, res) => {
       status: 'pending'
     });
     
+    console.log(`[Reporter Session] Created session ${sessionId} for wallet ${normalizedWallet}`);
+    
     res.json({
       sessionId: session.sessionId,
       expiresAt: session.expiresAt,
@@ -42,7 +84,7 @@ router.post('/session', async (req, res) => {
     
   } catch (error) {
     console.error('[Reporter Session Error]', error);
-    res.status(500).json({ error: 'Failed to create session' });
+    res.status(500).json({ error: 'Failed to create session: ' + error.message });
   }
 });
 
@@ -289,6 +331,56 @@ function formatRelativeTime(date) {
   if (days < 7) return `${days} days ago`;
   return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? 's' : ''} ago`;
 }
+
+// POST /api/reporter/claim-rewards - Claim pending rewards for a wallet
+router.post('/claim-rewards', async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+    
+    if (!walletAddress) {
+      return res.status(400).json({ error: 'walletAddress is required' });
+    }
+    
+    // Normalize wallet address
+    const normalizedWallet = walletAddress.toLowerCase();
+    
+    // Find user
+    const user = await User.findOne({ wallet: { $regex: new RegExp(`^${normalizedWallet}$`, 'i') } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Check if there are rewards to claim
+    try {
+      const rewardsWei = await getRewards(normalizedWallet);
+      const rewardsEth = Number(rewardsWei) / 1e18;
+      
+      if (rewardsEth <= 0) {
+        return res.status(400).json({ error: 'No rewards to claim' });
+      }
+      
+      // Claim rewards on blockchain
+      console.log(`[Claim Rewards] Claiming ${rewardsEth} ETH for wallet ${normalizedWallet}`);
+      const txHash = await blockchainClaimRewards(normalizedWallet);
+      
+      res.json({
+        success: true,
+        txHash,
+        amount: rewardsEth.toFixed(4),
+        message: `Successfully claimed ${rewardsEth.toFixed(4)} ETH`
+      });
+    } catch (blockchainError) {
+      console.error('[Claim Rewards] Blockchain error:', blockchainError);
+      return res.status(500).json({ 
+        error: 'Failed to claim rewards: ' + blockchainError.message 
+      });
+    }
+    
+  } catch (error) {
+    console.error('[Claim Rewards Error]', error);
+    res.status(500).json({ error: 'Failed to claim rewards: ' + error.message });
+  }
+});
 
 // Helper: Get tier from reputation score
 function getTierFromScore(score) {
