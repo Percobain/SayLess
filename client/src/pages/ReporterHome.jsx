@@ -130,37 +130,37 @@ export default function ReporterHome() {
   return (
     <Layout>
       {/* Hero Header */}
-      <section className="bg-neo-navy py-12 border-b-[4px] border-neo-navy">
+      <section className="bg-neo-navy py-6 sm:py-12 border-b-[4px] border-neo-navy">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex flex-col gap-4 sm:gap-6">
               <div>
-                <h1 className="text-4xl md:text-5xl font-heading font-bold text-neo-cream mb-2">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-heading font-bold text-neo-cream mb-2">
                   {t('reporterHome.title')}
                 </h1>
-                <p className="text-neo-cream/60">
+                <p className="text-sm sm:text-base text-neo-cream/60">
                   {t('reporterHome.subtitle')}
                 </p>
               </div>
 
               {/* Session ID */}
-              <NeoCard className="p-4 bg-neo-teal border-neo-teal">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-neo-orange flex items-center justify-center">
-                    <Hash className="w-5 h-5 text-neo-navy" />
+              <NeoCard className="p-3 sm:p-4 bg-neo-teal border-neo-teal w-full sm:w-auto sm:self-start">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-neo-orange flex items-center justify-center flex-shrink-0">
+                    <Hash className="w-4 h-4 sm:w-5 sm:h-5 text-neo-navy" />
                   </div>
-                  <div>
-                    <p className="text-xs text-neo-cream/70 uppercase">{t('common.session')}</p>
-                    <p className="font-mono font-bold text-neo-cream">{sessionId}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] sm:text-xs text-neo-cream/70 uppercase">{t('common.session')}</p>
+                    <p className="font-mono font-bold text-neo-cream text-sm sm:text-base truncate">{sessionId}</p>
                   </div>
                   <button
                     onClick={copySessionId}
-                    className="ml-2 p-2 hover:bg-neo-navy/20 transition-colors"
+                    className="p-2 hover:bg-neo-navy/20 transition-colors flex-shrink-0"
                   >
                     {copied ? (
-                      <Check className="w-5 h-5 text-neo-orange" />
+                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-neo-orange" />
                     ) : (
-                      <Copy className="w-5 h-5 text-neo-cream" />
+                      <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-neo-cream" />
                     )}
                   </button>
                 </div>
@@ -173,48 +173,48 @@ export default function ReporterHome() {
       {/* Stats Bar */}
       <section className="bg-neo-cream border-b-[4px] border-neo-navy">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x-[3px] divide-neo-navy">
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-navy">{stats.reportCount}</p>
-              <p className="text-sm text-neo-navy/60">{t('common.reports')}</p>
+          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4">
+            <div className="py-3 sm:py-6 text-center border-r-[2px] border-b-[2px] md:border-b-0 border-neo-navy">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-navy">{stats.reportCount}</p>
+              <p className="text-xs sm:text-sm text-neo-navy/60">{t('common.reports')}</p>
             </div>
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-teal">{stats.stakeUsed}</p>
-              <p className="text-sm text-neo-navy/60">{t('common.stakeUsed')}</p>
+            <div className="py-3 sm:py-6 text-center border-b-[2px] md:border-b-0 md:border-r-[2px] border-neo-navy">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-teal">{stats.stakeUsed}</p>
+              <p className="text-xs sm:text-sm text-neo-navy/60">{t('common.stakeUsed')}</p>
             </div>
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-orange">{stats.reputationScore}</p>
-              <p className="text-sm text-neo-navy/60">{t('common.reputation')}</p>
+            <div className="py-3 sm:py-6 text-center border-r-[2px] border-neo-navy">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-orange">{stats.reputationScore}</p>
+              <p className="text-xs sm:text-sm text-neo-navy/60">{t('common.reputation')}</p>
             </div>
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-teal">{stats.pendingRewards}</p>
-              <p className="text-sm text-neo-navy/60">{t('common.pendingRewards')}</p>
+            <div className="py-3 sm:py-6 text-center">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-teal">{stats.pendingRewards}</p>
+              <p className="text-xs sm:text-sm text-neo-navy/60">{t('common.pendingRewards')}</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="py-12 bg-neo-cream">
+      <section className="py-6 sm:py-12 bg-neo-cream">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="grid lg:grid-cols-3 gap-8">
+            <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
               {/* Actions Column */}
-              <div className="lg:col-span-2 space-y-6">
-                <h2 className="text-2xl font-heading font-bold text-neo-navy mb-4">{t('reporterHome.quickActions')}</h2>
+              <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+                <h2 className="text-xl sm:text-2xl font-heading font-bold text-neo-navy mb-2 sm:mb-4">{t('reporterHome.quickActions')}</h2>
 
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {/* Create Report */}
                   <Link to={`/reporter/report?session=${sessionId}`}>
-                    <NeoCard variant="orange" hover className="p-6 h-full">
+                    <NeoCard variant="orange" hover className="p-4 sm:p-6 h-full">
                       <div className="flex flex-col h-full">
-                        <div className="w-14 h-14 bg-neo-navy border-[3px] border-neo-navy flex items-center justify-center mb-4">
-                          <FileText className="w-7 h-7 text-neo-cream" />
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 bg-neo-navy border-[2px] sm:border-[3px] border-neo-navy flex items-center justify-center mb-3 sm:mb-4">
+                          <FileText className="w-5 h-5 sm:w-7 sm:h-7 text-neo-cream" />
                         </div>
-                        <h3 className="text-xl font-heading font-bold text-neo-navy mb-2">{t('reporterHome.createReport.title')}</h3>
-                        <p className="text-sm text-neo-navy/70 mb-4 flex-grow">{t('reporterHome.createReport.description')}</p>
-                        <div className="flex items-center gap-2 text-neo-navy font-bold text-sm">
-                          {t('reporterHome.createReport.action')} <ArrowRight className="w-4 h-4" />
+                        <h3 className="text-lg sm:text-xl font-heading font-bold text-neo-navy mb-1 sm:mb-2">{t('reporterHome.createReport.title')}</h3>
+                        <p className="text-xs sm:text-sm text-neo-navy/70 mb-3 sm:mb-4 flex-grow">{t('reporterHome.createReport.description')}</p>
+                        <div className="flex items-center gap-2 text-neo-navy font-bold text-xs sm:text-sm">
+                          {t('reporterHome.createReport.action')} <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                         </div>
                       </div>
                     </NeoCard>
@@ -222,15 +222,15 @@ export default function ReporterHome() {
 
                   {/* Silent Report */}
                   <Link to="/reporter/silent">
-                    <NeoCard variant="teal" hover className="p-6 h-full">
+                    <NeoCard variant="teal" hover className="p-4 sm:p-6 h-full">
                       <div className="flex flex-col h-full">
-                        <div className="w-14 h-14 bg-neo-cream border-[3px] border-neo-navy flex items-center justify-center mb-4">
-                          <Radio className="w-7 h-7 text-neo-navy" />
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 bg-neo-cream border-[2px] sm:border-[3px] border-neo-navy flex items-center justify-center mb-3 sm:mb-4">
+                          <Radio className="w-5 h-5 sm:w-7 sm:h-7 text-neo-navy" />
                         </div>
-                        <h3 className="text-xl font-heading font-bold text-neo-cream mb-2">{t('reporterHome.silentReport.title')}</h3>
-                        <p className="text-sm text-neo-cream/80 mb-4 flex-grow">{t('reporterHome.silentReport.description')}</p>
-                        <div className="flex items-center gap-2 text-neo-cream font-bold text-sm">
-                          {t('reporterHome.silentReport.action')} <ArrowRight className="w-4 h-4" />
+                        <h3 className="text-lg sm:text-xl font-heading font-bold text-neo-cream mb-1 sm:mb-2">{t('reporterHome.silentReport.title')}</h3>
+                        <p className="text-xs sm:text-sm text-neo-cream/80 mb-3 sm:mb-4 flex-grow">{t('reporterHome.silentReport.description')}</p>
+                        <div className="flex items-center gap-2 text-neo-cream font-bold text-xs sm:text-sm">
+                          {t('reporterHome.silentReport.action')} <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                         </div>
                       </div>
                     </NeoCard>
@@ -238,15 +238,15 @@ export default function ReporterHome() {
 
                   {/* Reputation */}
                   <Link to="/reputation">
-                    <NeoCard hover className="p-6 h-full">
+                    <NeoCard hover className="p-4 sm:p-6 h-full">
                       <div className="flex flex-col h-full">
-                        <div className="w-14 h-14 bg-neo-teal border-[3px] border-neo-navy flex items-center justify-center mb-4">
-                          <Shield className="w-7 h-7 text-neo-cream" />
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 bg-neo-teal border-[2px] sm:border-[3px] border-neo-navy flex items-center justify-center mb-3 sm:mb-4">
+                          <Shield className="w-5 h-5 sm:w-7 sm:h-7 text-neo-cream" />
                         </div>
-                        <h3 className="text-xl font-heading font-bold text-neo-navy mb-2">{t('reporterHome.myReputation.title')}</h3>
-                        <p className="text-sm text-neo-navy/70 mb-4 flex-grow">{t('reporterHome.myReputation.description')}</p>
-                        <div className="flex items-center gap-2 text-neo-navy font-bold text-sm">
-                          {t('reporterHome.myReputation.action')} <ArrowRight className="w-4 h-4" />
+                        <h3 className="text-lg sm:text-xl font-heading font-bold text-neo-navy mb-1 sm:mb-2">{t('reporterHome.myReputation.title')}</h3>
+                        <p className="text-xs sm:text-sm text-neo-navy/70 mb-3 sm:mb-4 flex-grow">{t('reporterHome.myReputation.description')}</p>
+                        <div className="flex items-center gap-2 text-neo-navy font-bold text-xs sm:text-sm">
+                          {t('reporterHome.myReputation.action')} <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                         </div>
                       </div>
                     </NeoCard>
@@ -254,15 +254,15 @@ export default function ReporterHome() {
 
                   {/* Wallet */}
                   <Link to="/wallet">
-                    <NeoCard hover className="p-6 h-full">
+                    <NeoCard hover className="p-4 sm:p-6 h-full">
                       <div className="flex flex-col h-full">
-                        <div className="w-14 h-14 bg-neo-orange border-[3px] border-neo-navy flex items-center justify-center mb-4">
-                          <Award className="w-7 h-7 text-neo-navy" />
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 bg-neo-orange border-[2px] sm:border-[3px] border-neo-navy flex items-center justify-center mb-3 sm:mb-4">
+                          <Award className="w-5 h-5 sm:w-7 sm:h-7 text-neo-navy" />
                         </div>
-                        <h3 className="text-xl font-heading font-bold text-neo-navy mb-2">{t('reporterHome.rewards.title')}</h3>
-                        <p className="text-sm text-neo-navy/70 mb-4 flex-grow">{t('reporterHome.rewards.description')}</p>
-                        <div className="flex items-center gap-2 text-neo-navy font-bold text-sm">
-                          {t('reporterHome.rewards.action')} <ArrowRight className="w-4 h-4" />
+                        <h3 className="text-lg sm:text-xl font-heading font-bold text-neo-navy mb-1 sm:mb-2">{t('reporterHome.rewards.title')}</h3>
+                        <p className="text-xs sm:text-sm text-neo-navy/70 mb-3 sm:mb-4 flex-grow">{t('reporterHome.rewards.description')}</p>
+                        <div className="flex items-center gap-2 text-neo-navy font-bold text-xs sm:text-sm">
+                          {t('reporterHome.rewards.action')} <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                         </div>
                       </div>
                     </NeoCard>
@@ -327,14 +327,14 @@ export default function ReporterHome() {
             </div>
 
             {/* Privacy Banner */}
-            <NeoCard variant="maroon" className="p-6 mt-8">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-neo-cream border-[3px] border-neo-cream flex items-center justify-center flex-shrink-0">
-                  <Shield className="w-6 h-6 text-neo-maroon" />
+            <NeoCard variant="maroon" className="p-4 sm:p-6 mt-6 sm:mt-8">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-neo-cream border-[2px] sm:border-[3px] border-neo-cream flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-neo-maroon" />
                 </div>
                 <div>
-                  <h4 className="font-heading font-bold text-neo-cream mb-2">{t('reporterHome.privacyProtected')}</h4>
-                  <p className="text-neo-cream/80 text-sm">
+                  <h4 className="font-heading font-bold text-neo-cream mb-1 sm:mb-2 text-sm sm:text-base">{t('reporterHome.privacyProtected')}</h4>
+                  <p className="text-neo-cream/80 text-xs sm:text-sm">
                     {t('reporterHome.privacyMessage')}
                   </p>
                 </div>
