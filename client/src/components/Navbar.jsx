@@ -1,18 +1,21 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Shield, User, Scale, Wallet, Menu, X } from 'lucide-react';
 import { useState } from 'react';
-
-const navLinks = [
-  { path: '/', label: 'Home', icon: null },
-  { path: '/reporter', label: 'Reporter', icon: User },
-  { path: '/authority', label: 'Authority', icon: Shield },
-  { path: '/jury', label: 'Jury', icon: Scale },
-  { path: '/wallet', label: 'Wallet', icon: Wallet },
-];
+import { useI18n } from '../context/I18nContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Navbar() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t } = useI18n();
+
+  const navLinks = [
+    { path: '/', label: t('navbar.home'), icon: null },
+    { path: '/reporter', label: t('navbar.reporter'), icon: User },
+    { path: '/authority', label: t('navbar.authority'), icon: Shield },
+    { path: '/jury', label: t('navbar.jury'), icon: Scale },
+    { path: '/wallet', label: t('navbar.wallet'), icon: Wallet },
+  ];
 
   return (
     <nav className="bg-neo-cream border-b-[3px] border-neo-navy">
@@ -33,7 +36,7 @@ export default function Navbar() {
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
               const Icon = link.icon;
-              
+
               return (
                 <Link
                   key={link.path}
@@ -41,8 +44,8 @@ export default function Navbar() {
                   className={`
                     px-4 py-2 font-heading font-bold text-sm uppercase tracking-wide
                     border-[2px] border-neo-navy transition-all duration-150
-                    ${isActive 
-                      ? 'bg-neo-navy text-neo-cream' 
+                    ${isActive
+                      ? 'bg-neo-navy text-neo-cream'
                       : 'bg-neo-cream text-neo-navy hover:bg-neo-orange hover:translate-x-[1px] hover:translate-y-[1px]'
                     }
                   `}
@@ -54,15 +57,21 @@ export default function Navbar() {
                 </Link>
               );
             })}
+
+            {/* Language Switcher */}
+            <LanguageSwitcher />
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden neo-btn p-2"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <LanguageSwitcher />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="neo-btn p-2"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -71,7 +80,7 @@ export default function Navbar() {
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
               const Icon = link.icon;
-              
+
               return (
                 <Link
                   key={link.path}
@@ -80,8 +89,8 @@ export default function Navbar() {
                   className={`
                     block w-full px-4 py-3 font-heading font-bold text-sm uppercase tracking-wide
                     border-[3px] border-neo-navy transition-all duration-150
-                    ${isActive 
-                      ? 'bg-neo-navy text-neo-cream shadow-none' 
+                    ${isActive
+                      ? 'bg-neo-navy text-neo-cream shadow-none'
                       : 'bg-neo-cream text-neo-navy shadow-neo hover:bg-neo-orange'
                     }
                   `}
@@ -99,3 +108,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
