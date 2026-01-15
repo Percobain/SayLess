@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import { fetchFromIPFS } from '../services/pinata.js';
 import { decryptReport } from '../services/crypto.js';
 import { analyzeReport } from '../services/gemini.js';
+import { searchWeb, generateSearchQuery } from '../services/tavily.js';
 import { verifyReport, rejectReport, getReputation } from '../services/blockchain.js';
 
 const router = express.Router();
@@ -74,9 +75,15 @@ router.post('/decrypt/:id', async (req, res) => {
     const decrypted = decryptReport(encryptedPayload, authorityKey);
     console.log('[Authority] Decryption successful');
     
-    // Run AI analysis
-    console.log('[Authority] Running AI analysis...');
-    const aiAnalysis = await analyzeReport(decrypted);
+    // Run web search for context
+    console.log('[Authority] Searching web for context...');
+    const searchQuery = generateSearchQuery(decrypted);
+    const webContext = await searchWeb(searchQuery);
+    console.log('[Authority] Web search completed:', webContext.success ? 'found results' : 'no results');
+    
+    // Run AI analysis with web context
+    console.log('[Authority] Running AI analysis with web context...');
+    const aiAnalysis = await analyzeReport(decrypted, webContext);
     console.log('[Authority] AI analysis:', aiAnalysis);
     
     // Save to report
@@ -86,7 +93,11 @@ router.post('/decrypt/:id', async (req, res) => {
     
     res.json({
       decrypted,
-      aiAnalysis
+      aiAnalysis,
+      webContext: webContext.success ? {
+        sources: webContext.sources,
+        answer: webContext.answer
+      } : null
     });
     
   } catch (error) {

@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import { initBlockchain } from './services/blockchain.js';
 import { initGemini } from './services/gemini.js';
 import { initPrivy, getFunderBalance } from './services/privy.js';
+import { initTavily } from './services/tavily.js';
 
 // Import routes
 import webhookRoutes from './routes/webhook.js';
@@ -78,6 +79,10 @@ async function start() {
     // Initialize Gemini AI
     console.log('Initializing Gemini AI...');
     initGemini();
+    
+    // Initialize Tavily Search
+    console.log('Initializing Tavily Search...');
+    initTavily();
     
     // Start server
     app.listen(PORT, () => {
