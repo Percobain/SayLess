@@ -4,8 +4,10 @@ import { v4 as uuid } from 'uuid';
 import Report from '../models/Report.js';
 import Session from '../models/Session.js';
 import User from '../models/User.js';
-import { getReputation, getRewards, getWalletBalance, claimRewards as blockchainClaimRewards } from '../services/blockchain.js';
+import JuryVote from '../models/JuryVote.js';
+import { getRewards, getWalletBalance, claimRewards as blockchainClaimRewards } from '../services/blockchain.js';
 import { createPrivyWallet, fundWalletWithEth } from '../services/privy.js';
+import { getReputation as getReputationDB, ensureReputationInitialized } from '../services/reputation.js';
 
 const router = express.Router();
 
@@ -41,14 +43,16 @@ router.post('/session', async (req, res) => {
         // This ensures uniqueness while allowing web users without WhatsApp
         const whatsappHash = crypto.createHash('sha256').update(`web-${normalizedWallet}`).digest('hex');
         
-        // Create a user entry with placeholder data for web users
-        // The wallet address itself is the key identifier
-        user = await User.create({
-          whatsappHash, // Use wallet hash as placeholder for web users
-          odacityUserId: uuid(),
-          wallet: normalizedWallet,
-          privyWalletId: `web-${normalizedWallet.slice(2, 22)}` // Use wallet chars as placeholder
-        });
+    // Create a user entry with placeholder data for web users
+    // The wallet address itself is the key identifier
+    user = await User.create({
+      whatsappHash, // Use wallet hash as placeholder for web users
+      odacityUserId: uuid(),
+      wallet: normalizedWallet,
+      privyWalletId: `web-${normalizedWallet.slice(2, 22)}`, // Use wallet chars as placeholder
+      reputation: 50, // Initialize with default reputation
+      juryReputation: 50 // Initialize with default jury reputation
+    });
         
         console.log(`[Reporter Session] Created user for web wallet: ${normalizedWallet}`);
       } catch (createError) {
@@ -110,12 +114,13 @@ router.get('/stats/:walletAddress', async (req, res) => {
     // Calculate stake used (0.001 ETH per report submitted)
     const stakeUsed = (reportCount * 0.001).toFixed(3);
     
-    // Get on-chain data
-    let reputation = 0;
-    let pendingRewards = '0';
+    // Get reputation from DB (auto-fixes if 0)
+    const repData = await getReputationDB(walletAddress);
+    const reputation = repData.reporterReputation || 50;
     
+    // Get on-chain rewards
+    let pendingRewards = '0';
     try {
-      reputation = Number(await getReputation(walletAddress));
       const rewardsWei = await getRewards(walletAddress);
       pendingRewards = (Number(rewardsWei) / 1e18).toFixed(4);
     } catch (e) {
@@ -199,12 +204,13 @@ router.get('/reputation/:walletAddress', async (req, res) => {
     const acceptedReports = reports.filter(r => r.status === 'verified').length;
     const rejectedReports = reports.filter(r => r.status === 'rejected').length;
     
-    // Get on-chain reputation
-    let reputation = 0;
-    let pendingRewards = '0';
+    // Get reputation from DB (auto-fixes if 0)
+    const repData = await getReputationDB(walletAddress);
+    const reputation = repData.reporterReputation || 50;
     
+    // Get on-chain rewards
+    let pendingRewards = '0';
     try {
-      reputation = Number(await getReputation(walletAddress));
       const rewardsWei = await getRewards(walletAddress);
       pendingRewards = (Number(rewardsWei) / 1e18).toFixed(4);
     } catch (e) {
@@ -218,15 +224,35 @@ router.get('/reputation/:walletAddress', async (req, res) => {
     const verifiedSessions = sessions.filter(s => s.status === 'verified' && s.rewardAmount);
     const totalRewardsEarned = verifiedSessions.reduce((sum, s) => sum + parseFloat(s.rewardAmount || 0), 0);
     
-    // Build recent activity from reports
-    const recentActivity = reports.slice(0, 5).map(report => ({
-      type: report.status === 'verified' ? 'report_accepted' : 
-            report.status === 'rejected' ? 'report_rejected' : 'report_pending',
-      change: report.status === 'verified' ? '+5' : 
-              report.status === 'rejected' ? '-3' : '0',
-      description: `Report ${report.sessionId} ${report.status}`,
-      date: formatRelativeTime(report.createdAt)
-    }));
+    // Get jury votes count from DB
+    const userJuryVotes = await JuryVote.find({ voterWallet: walletAddress.toLowerCase() });
+    const juryVotes = userJuryVotes.length;
+    
+    // Calculate correct votes (votes that matched final verdict)
+    // This requires checking which reports were verified/rejected and matching votes
+    let correctVotes = 0;
+    for (const vote of userJuryVotes) {
+      const votedReport = await Report.findById(vote.reportId);
+      if (votedReport) {
+        const voteMatchesVerdict = 
+          (vote.vote === 'valid' && votedReport.status === 'verified') ||
+          (vote.vote === 'invalid' && votedReport.status === 'rejected');
+        if (voteMatchesVerdict) {
+          correctVotes++;
+        }
+      }
+    }
+    
+    // Build recent activity from reputation history (DB)
+    const recentActivity = (repData.history || [])
+      .slice(-10)
+      .reverse()
+      .map(entry => ({
+        type: entry.type === 'jury' ? 'jury_vote' : 'report_' + (entry.change > 0 ? 'accepted' : 'rejected'),
+        change: entry.change > 0 ? `+${entry.change}` : `${entry.change}`,
+        description: entry.reason || 'Reputation update',
+        date: formatRelativeTime(entry.timestamp)
+      }));
     
     res.json({
       ensAlias: `sayless-${walletAddress.slice(-4).toLowerCase()}.eth`,
@@ -235,8 +261,8 @@ router.get('/reputation/:walletAddress', async (req, res) => {
       totalReports,
       acceptedReports,
       rejectedReports,
-      juryVotes: 0, // Not implemented yet
-      correctVotes: 0,
+      juryVotes,
+      correctVotes,
       rewardsEarned: `${totalRewardsEarned.toFixed(4)} ETH`,
       penaltiesReceived: '0 ETH', // Not tracked yet
       pendingRewards: `${pendingRewards} ETH`,
@@ -379,6 +405,78 @@ router.post('/claim-rewards', async (req, res) => {
   } catch (error) {
     console.error('[Claim Rewards Error]', error);
     res.status(500).json({ error: 'Failed to claim rewards: ' + error.message });
+  }
+});
+
+// POST /api/reporter/fix-reputation/:walletAddress - Fix reputation if 0
+router.post('/fix-reputation/:walletAddress', async (req, res) => {
+  try {
+    const { walletAddress } = req.params;
+    
+    const result = await ensureReputationInitialized(walletAddress);
+    if (result) {
+      res.json({
+        success: true,
+        reputation: result.reporterReputation,
+        juryReputation: result.juryReputation,
+        message: 'Reputation fixed successfully'
+      });
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
+  } catch (error) {
+    console.error('[Fix Reputation Error]', error);
+    res.status(500).json({ error: 'Failed to fix reputation: ' + error.message });
+  }
+});
+
+// POST /api/reporter/fix-all-reputations - Fix all users with 0 reputation
+router.post('/fix-all-reputations', async (req, res) => {
+  try {
+    // Find all users with 0 or null reputation
+    const usersToFix = await User.find({
+      $or: [
+        { reputation: 0 },
+        { reputation: null },
+        { reputation: { $exists: false } },
+        { juryReputation: 0 },
+        { juryReputation: null },
+        { juryReputation: { $exists: false } }
+      ]
+    });
+    
+    console.log(`[Fix All Reputations] Found ${usersToFix.length} users to fix`);
+    
+    let fixed = 0;
+    for (const user of usersToFix) {
+      let updated = false;
+      
+      if (!user.reputation || user.reputation === 0) {
+        user.reputation = 50;
+        updated = true;
+      }
+      
+      if (!user.juryReputation || user.juryReputation === 0) {
+        user.juryReputation = 50;
+        updated = true;
+      }
+      
+      if (updated) {
+        await user.save();
+        fixed++;
+        console.log(`[Fix All Reputations] Fixed user ${user.wallet}: rep=${user.reputation}, juryRep=${user.juryReputation}`);
+      }
+    }
+    
+    res.json({
+      success: true,
+      totalFound: usersToFix.length,
+      fixed,
+      message: `Fixed ${fixed} users with 0 reputation`
+    });
+  } catch (error) {
+    console.error('[Fix All Reputations Error]', error);
+    res.status(500).json({ error: 'Failed to fix reputations: ' + error.message });
   }
 });
 

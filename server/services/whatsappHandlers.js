@@ -47,7 +47,9 @@ const handleIncomingMessage = async (params) => {
           whatsappHash,
           odacityUserId: uuid(),
           wallet: privyWallet.address,
-          privyWalletId: privyWallet.privyWalletId
+          privyWalletId: privyWallet.privyWalletId,
+          reputation: 50, // Initialize with default reputation
+          juryReputation: 50 // Initialize with default jury reputation
         });
         
         logger.info(`[WhatsApp Handler] Created Privy wallet: ${privyWallet.address} (ID: ${privyWallet.privyWalletId})`);

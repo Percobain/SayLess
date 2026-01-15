@@ -6,7 +6,7 @@ import { fetchFromIPFS } from '../services/pinata.js';
 import { decryptReport, decryptFile } from '../services/crypto.js';
 import { analyzeReport, analyzeEvidenceFiles } from '../services/gemini.js';
 import { searchWeb, generateSearchQuery } from '../services/tavily.js';
-import { verifyReport, rejectReport, getReputation } from '../services/blockchain.js';
+import { verifyReport, rejectReport } from '../services/blockchain.js';
 import { updateReporterReputation, calculateJuryVerdictReputations, REPUTATION, getReputation as getReputationDB } from '../services/reputation.js';
 import JuryVote from '../models/JuryVote.js';
 
@@ -181,10 +181,11 @@ router.post('/verify/:id', async (req, res) => {
     session.rewardAmount = rewardAmount;
     await session.save();
     
-    // Update reporter reputation
+    // Update reporter reputation (DB only)
     const user = await User.findOne({ odacityUserId: session.odacityUserId });
     if (user) {
       await updateReporterReputation(user.wallet, REPUTATION.REPORT_VERIFIED, 'Report verified by authority');
+      
       // Calculate jury reputations for this case
       await calculateJuryVerdictReputations(report._id, 'verified');
     }
@@ -226,10 +227,11 @@ router.post('/reject/:id', async (req, res) => {
     session.status = 'rejected';
     await session.save();
     
-    // Update reporter reputation
+    // Update reporter reputation (DB only)
     const user = await User.findOne({ odacityUserId: session.odacityUserId });
     if (user) {
       await updateReporterReputation(user.wallet, REPUTATION.REPORT_REJECTED, 'Report rejected by authority');
+      
       // Calculate jury reputations for this case
       await calculateJuryVerdictReputations(report._id, 'rejected');
     }

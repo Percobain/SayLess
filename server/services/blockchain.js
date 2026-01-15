@@ -130,6 +130,20 @@ function computeKeccak256(data) {
   return ethers.keccak256(ethers.toUtf8Bytes(data));
 }
 
+async function addReputation(walletAddress, amount) {
+  const amountInt = BigInt(Math.floor(amount));
+  const tx = await contract.addReputation(walletAddress, amountInt);
+  await tx.wait();
+  return tx.hash;
+}
+
+async function setReputation(walletAddress, reputation) {
+  const repInt = BigInt(Math.floor(reputation));
+  const tx = await contract.setReputation(walletAddress, repInt);
+  await tx.wait();
+  return tx.hash;
+}
+
 export {
   initBlockchain,
   submitReport,
@@ -140,5 +154,7 @@ export {
   getRewards,
   getWalletBalance,
   fundWallet,
-  computeKeccak256
+  computeKeccak256,
+  addReputation,
+  setReputation
 };

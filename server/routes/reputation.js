@@ -11,10 +11,10 @@ const router = express.Router();
 router.get('/:walletAddress', async (req, res) => {
   try {
     const { walletAddress } = req.params;
-    const wallet = walletAddress.toLowerCase();
     
-    // Get user from DB
-    const user = await User.findOne({ wallet });
+    // Get user from DB (case-insensitive)
+    const user = await User.findOne({ wallet: { $regex: new RegExp(`^${walletAddress}$`, 'i') } });
+    const wallet = user?.wallet?.toLowerCase() || walletAddress.toLowerCase();
     
     // Get reputation data
     const repData = await getReputation(wallet);
@@ -39,9 +39,20 @@ router.get('/:walletAddress', async (req, res) => {
     // Get jury vote stats
     const juryVotes = await JuryVote.find({ voterWallet: wallet });
     const totalJuryVotes = juryVotes.length;
-    // For correct votes, we'd need to track which verdicts matched final outcome
-    // For now, calculate from reputation changes
-    const correctVotes = Math.floor(totalJuryVotes * 0.85); // Placeholder
+    
+    // Calculate correct votes (votes that matched final verdict)
+    let correctVotes = 0;
+    for (const vote of juryVotes) {
+      const votedReport = await Report.findById(vote.reportId);
+      if (votedReport) {
+        const voteMatchesVerdict = 
+          (vote.vote === 'valid' && votedReport.status === 'verified') ||
+          (vote.vote === 'invalid' && votedReport.status === 'rejected');
+        if (voteMatchesVerdict) {
+          correctVotes++;
+        }
+      }
+    }
     
     // Format history for frontend
     const recentActivity = (repData.history || []).slice(-10).reverse().map(h => ({

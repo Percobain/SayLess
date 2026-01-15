@@ -182,9 +182,20 @@ router.get('/stats/:walletAddress', async (req, res) => {
     // Calculate stats
     const casesJudged = userVotes.length;
     
-    // For success rate, we would need to track which verdicts matched the final outcome
-    // For now, show placeholder (can be enhanced later with verdict tracking)
-    const successRate = casesJudged > 0 ? 85 : 0; // Placeholder
+    // Calculate success rate by checking which votes matched final verdicts
+    let correctVotes = 0;
+    for (const vote of userVotes) {
+      const votedReport = await Report.findById(vote.reportId);
+      if (votedReport && (votedReport.status === 'verified' || votedReport.status === 'rejected')) {
+        const voteMatchesVerdict = 
+          (vote.vote === 'valid' && votedReport.status === 'verified') ||
+          (vote.vote === 'invalid' && votedReport.status === 'rejected');
+        if (voteMatchesVerdict) {
+          correctVotes++;
+        }
+      }
+    }
+    const successRate = casesJudged > 0 ? Math.round((correctVotes / casesJudged) * 100) : 0;
     
     res.json({
       reputation: juryReputation,

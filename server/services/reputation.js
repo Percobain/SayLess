@@ -18,14 +18,14 @@ const REPUTATION = {
 };
 
 /**
- * Update reporter reputation
+ * Update reporter reputation (DB only)
  * @param {string} walletAddress - User's wallet address
  * @param {number} change - Points to add (can be negative)
  * @param {string} reason - Reason for the change
  */
 async function updateReporterReputation(walletAddress, change, reason) {
   try {
-    const user = await User.findOne({ wallet: walletAddress.toLowerCase() });
+    const user = await User.findOne({ wallet: { $regex: new RegExp(`^${walletAddress}$`, 'i') } });
     if (!user) {
       console.log(`[Reputation] User not found for wallet: ${walletAddress}`);
       return null;
@@ -44,6 +44,7 @@ async function updateReporterReputation(walletAddress, change, reason) {
       user.reputationHistory = [];
     }
     user.reputationHistory.push({
+      type: 'reporter',
       change,
       reason,
       oldValue: oldRep,
@@ -68,14 +69,14 @@ async function updateReporterReputation(walletAddress, change, reason) {
 }
 
 /**
- * Update jury member reputation
+ * Update jury member reputation (DB only)
  * @param {string} walletAddress - User's wallet address
  * @param {number} change - Points to add (can be negative)
  * @param {string} reason - Reason for the change
  */
 async function updateJuryReputation(walletAddress, change, reason) {
   try {
-    const user = await User.findOne({ wallet: walletAddress.toLowerCase() });
+    const user = await User.findOne({ wallet: { $regex: new RegExp(`^${walletAddress}$`, 'i') } });
     if (!user) {
       console.log(`[Reputation] User not found for wallet: ${walletAddress}`);
       return null;
@@ -119,18 +120,68 @@ async function updateJuryReputation(walletAddress, change, reason) {
 }
 
 /**
- * Get user's reputation data
+ * Fix user reputation if it's 0 or missing (set to default 50)
+ * @param {string} walletAddress - User's wallet address
+ */
+async function ensureReputationInitialized(walletAddress) {
+  try {
+    const user = await User.findOne({ wallet: { $regex: new RegExp(`^${walletAddress}$`, 'i') } });
+    if (!user) {
+      return null;
+    }
+    
+    let updated = false;
+    
+    // Fix reporter reputation if 0 or missing
+    if (!user.reputation || user.reputation === 0) {
+      user.reputation = REPUTATION.INITIAL;
+      updated = true;
+      console.log(`[Reputation] Initialized reporter reputation for ${walletAddress} to ${REPUTATION.INITIAL}`);
+    }
+    
+    // Fix jury reputation if 0 or missing
+    if (!user.juryReputation || user.juryReputation === 0) {
+      user.juryReputation = REPUTATION.INITIAL;
+      updated = true;
+      console.log(`[Reputation] Initialized jury reputation for ${walletAddress} to ${REPUTATION.INITIAL}`);
+    }
+    
+    if (updated) {
+      await user.save();
+    }
+    
+    return {
+      reporterReputation: user.reputation,
+      juryReputation: user.juryReputation,
+      history: user.reputationHistory || []
+    };
+  } catch (error) {
+    console.error('[Reputation] Error ensuring reputation initialized:', error);
+    return null;
+  }
+}
+
+/**
+ * Get user's reputation data from DB
  * @param {string} walletAddress - User's wallet address
  */
 async function getReputation(walletAddress) {
   try {
-    const user = await User.findOne({ wallet: walletAddress.toLowerCase() });
+    const user = await User.findOne({ wallet: { $regex: new RegExp(`^${walletAddress}$`, 'i') } });
     if (!user) {
       return {
         reporterReputation: REPUTATION.INITIAL,
         juryReputation: REPUTATION.INITIAL,
         history: []
       };
+    }
+    
+    // Auto-fix reputation if it's 0 or missing
+    if (!user.reputation || user.reputation === 0 || !user.juryReputation || user.juryReputation === 0) {
+      const fixed = await ensureReputationInitialized(walletAddress);
+      if (fixed) {
+        return fixed;
+      }
     }
     
     return {
@@ -145,7 +196,7 @@ async function getReputation(walletAddress) {
 }
 
 /**
- * Calculate and award jury reputations after a case is finalized
+ * Calculate and award jury reputations after a case is finalized (DB only)
  * @param {string} reportId - MongoDB report ID
  * @param {string} finalVerdict - 'verified' or 'rejected'
  */
@@ -210,6 +261,7 @@ export {
   updateReporterReputation,
   updateJuryReputation,
   getReputation,
+  ensureReputationInitialized,
   calculateJuryVerdictReputations,
   getVoteWeight
 };
