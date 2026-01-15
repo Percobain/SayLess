@@ -51,4 +51,34 @@ export async function getAuthorityStats() {
   return response.json();
 }
 
+// Reporter API functions
+export async function createSession(walletAddress) {
+  const response = await fetch(`${API_URL}/api/reporter/session`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ walletAddress })
+  });
+  return response.json();
+}
 
+export async function getReporterStats(walletAddress) {
+  const response = await fetch(`${API_URL}/api/reporter/stats/${walletAddress}`);
+  return response.json();
+}
+
+export async function getReporterReports(walletAddress, limit = 10) {
+  const response = await fetch(`${API_URL}/api/reporter/reports/${walletAddress}?limit=${limit}`);
+  return response.json();
+}
+
+export async function getReputationData(walletAddress) {
+  const response = await fetch(`${API_URL}/api/reporter/reputation/${walletAddress}`);
+  return response.json();
+}
+
+export async function getWalletData(walletAddress) {
+  const response = await fetch(`${API_URL}/api/reporter/wallet/${walletAddress}`);
+  return response.json();
+}

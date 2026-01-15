@@ -4,6 +4,7 @@ import { Radio, ArrowLeft, Volume2, VolumeX, Send, RotateCcw, HelpCircle } from 
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
+import { useSession } from '../context/SessionContext';
 
 // Morse-like patterns for categories
 const patterns = {
@@ -22,6 +23,7 @@ const severityPatterns = {
 };
 
 export default function SilentReport() {
+  const { sessionId, walletAddress } = useSession();
   const [taps, setTaps] = useState([]);
   const [holding, setHolding] = useState(false);
   const [holdStart, setHoldStart] = useState(0);

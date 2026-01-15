@@ -1,41 +1,72 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Wallet, Copy, Check, ArrowUpRight, ArrowDownLeft, 
-  Coins, Lock, Download, ExternalLink, TrendingUp, Shield
+  Coins, Lock, Download, ExternalLink, TrendingUp, Shield, Loader2
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
-
-// Mock wallet data
-const mockWallet = {
-  address: '0x7a3B...9f4E',
-  fullAddress: '0x7a3B4c5D6e7F8g9H0i1J2k3L4m5N6o7P8q9f4E',
-  balances: {
-    eth: '0.0847',
-    usdc: '125.50',
-  },
-  pendingRewards: '0.012',
-  stakedAmount: '0.025',
-};
-
-const mockTransactions = [
-  { id: 1, type: 'reward', amount: '+0.005 ETH', label: 'Report Verified', time: '2 hours ago', hash: '0x1a2b...3c4d' },
-  { id: 2, type: 'stake', amount: '-0.001 ETH', label: 'Report Stake', time: '1 day ago', hash: '0x5e6f...7g8h' },
-  { id: 3, type: 'reward', amount: '+0.008 ETH', label: 'Report Verified', time: '3 days ago', hash: '0x9i0j...1k2l' },
-  { id: 4, type: 'stake', amount: '-0.001 ETH', label: 'Report Stake', time: '5 days ago', hash: '0x3m4n...5o6p' },
-  { id: 5, type: 'reward', amount: '+0.003 ETH', label: 'Jury Reward', time: '1 week ago', hash: '0x7q8r...9s0t' },
-];
+import { useSession } from '../context/SessionContext';
+import { getWalletData } from '../lib/api';
 
 export default function WalletDashboard() {
+  const { walletAddress, loading: sessionLoading } = useSession();
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [wallet, setWallet] = useState({
+    address: '0x....',
+    fullAddress: '',
+    balances: { eth: '0', usdc: '0' },
+    pendingRewards: '0',
+    stakedAmount: '0',
+    pendingReportCount: 0,
+    transactions: []
+  });
+
+  useEffect(() => {
+    if (sessionLoading) return;
+    
+    // Redirect if no wallet
+    const currentWallet = walletAddress || localStorage.getItem('walletAddress');
+    if (!currentWallet) {
+      navigate('/reporter');
+      return;
+    }
+
+    async function loadData() {
+      try {
+        const data = await getWalletData(currentWallet);
+        if (!data.error) {
+          setWallet(data);
+        }
+      } catch (error) {
+        console.error('Failed to load wallet data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [sessionLoading, walletAddress, navigate]);
 
   const copyAddress = () => {
-    navigator.clipboard.writeText(mockWallet.fullAddress);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (wallet.fullAddress) {
+      navigator.clipboard.writeText(wallet.fullAddress);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-10 h-10 animate-spin text-neo-teal" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -65,7 +96,7 @@ export default function WalletDashboard() {
                   </div>
                   <div>
                     <p className="text-xs text-neo-cream/70 uppercase">Address</p>
-                    <p className="font-mono font-bold text-neo-cream">{mockWallet.address}</p>
+                    <p className="font-mono font-bold text-neo-cream">{wallet.address}</p>
                   </div>
                   <button
                     onClick={copyAddress}
@@ -89,19 +120,19 @@ export default function WalletDashboard() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x-[3px] divide-neo-navy">
             <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-navy">{mockWallet.balances.eth}</p>
+              <p className="text-4xl font-heading font-bold text-neo-navy">{wallet.balances.eth}</p>
               <p className="text-sm text-neo-navy/60">ETH Balance</p>
             </div>
             <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-teal">${mockWallet.balances.usdc}</p>
+              <p className="text-4xl font-heading font-bold text-neo-teal">${wallet.balances.usdc}</p>
               <p className="text-sm text-neo-navy/60">USDC Balance</p>
             </div>
             <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-orange">{mockWallet.pendingRewards}</p>
+              <p className="text-4xl font-heading font-bold text-neo-orange">{wallet.pendingRewards}</p>
               <p className="text-sm text-neo-navy/60">Pending Rewards</p>
             </div>
             <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-maroon">{mockWallet.stakedAmount}</p>
+              <p className="text-4xl font-heading font-bold text-neo-maroon">{wallet.stakedAmount}</p>
               <p className="text-sm text-neo-navy/60">Staked</p>
             </div>
           </div>
@@ -137,7 +168,7 @@ export default function WalletDashboard() {
                     <h2 className="font-heading font-bold text-lg text-neo-cream">Transaction History</h2>
                   </div>
                   <div className="divide-y-[2px] divide-neo-navy">
-                    {mockTransactions.map((tx) => (
+                    {(wallet.transactions || []).map((tx) => (
                       <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-neo-cream/50">
                         <div className="flex items-center gap-4">
                           <div className={`
@@ -211,11 +242,11 @@ export default function WalletDashboard() {
                   <ul className="space-y-2 text-sm text-neo-cream/80">
                     <li className="flex justify-between">
                       <span>Currently Staked</span>
-                      <span className="font-bold text-neo-cream">{mockWallet.stakedAmount} ETH</span>
+                      <span className="font-bold text-neo-cream">{wallet.stakedAmount} ETH</span>
                     </li>
                     <li className="flex justify-between">
                       <span>Pending Reports</span>
-                      <span className="font-bold text-neo-cream">2</span>
+                      <span className="font-bold text-neo-cream">{wallet.pendingReportCount || 0}</span>
                     </li>
                     <li className="flex justify-between">
                       <span>Est. Returns</span>

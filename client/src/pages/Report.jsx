@@ -7,6 +7,7 @@ import {
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
+import { useSession } from '../context/SessionContext';
 import { encryptWithNaCl, encryptFile } from '../lib/encryption';
 import { checkSession, submitReport } from '../lib/api';
 
@@ -22,16 +23,19 @@ const crimeCategories = [
 ];
 
 export default function Report() {
+  const { sessionId: storedSessionId, walletAddress: storedWallet, saveSession } = useSession();
   const { sessionId: paramSessionId } = useParams();
   const [searchParams] = useSearchParams();
-  const sessionId = paramSessionId || searchParams.get('session');
+  
+  // Priority: URL param > query param > stored session
+  const sessionId = paramSessionId || searchParams.get('session') || storedSessionId;
   
   const [category, setCategory] = useState('');
   const [severity, setSeverity] = useState(5);
   const [text, setText] = useState('');
   const [files, setFiles] = useState([]);
   const [status, setStatus] = useState('loading'); // loading, valid, encrypting, submitting, done, error
-  const [walletAddress, setWalletAddress] = useState(null);
+  const [walletAddress, setWalletAddress] = useState(storedWallet);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [showWarning, setShowWarning] = useState(false);
@@ -51,6 +55,8 @@ export default function Report() {
           setStatus('valid');
           if (data.wallet) {
             setWalletAddress(data.wallet);
+            // Save session to context so wallet is available across all pages
+            saveSession(sessionId, data.wallet, data.expiresAt);
           }
         } else {
           setStatus('invalid');
@@ -64,7 +70,7 @@ export default function Report() {
     }
 
     validateSession();
-  }, [sessionId]);
+  }, [sessionId, saveSession]);
 
   const handleSubmit = async () => {
     if (!text.trim() || !category) {

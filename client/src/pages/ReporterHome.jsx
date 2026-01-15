@@ -1,58 +1,129 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   FileText, Radio, Award, Coins, Hash, TrendingUp, Shield, 
-  Copy, Check, ArrowRight, Clock, CheckCircle, XCircle, Zap 
+  Copy, Check, ArrowRight, Clock, CheckCircle, XCircle, Zap, Loader2 
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
-
-// Generate a random session ID
-const generateSessionId = () => {
-  return 'SL-' + Math.random().toString(36).substring(2, 10).toUpperCase();
-};
-
-// Mock recent reports
-const recentReports = [
-  { id: 'RPT-A7B3C9', category: 'Fraud', status: 'verified', date: '2 days ago', reward: '0.005 ETH' },
-  { id: 'RPT-K4L9M2', category: 'Theft', status: 'pending', date: '5 days ago', reward: '-' },
-  { id: 'RPT-F2E8D1', category: 'Corruption', status: 'rejected', date: '1 week ago', reward: '-0.001 ETH' },
-];
+import { useSession } from '../context/SessionContext';
+import { getReporterStats, getReporterReports } from '../lib/api';
 
 export default function ReporterHome() {
-  const [sessionId] = useState(generateSessionId());
+  const { session, sessionId, walletAddress, createNewSession, loading: sessionLoading } = useSession();
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    reportCount: 0,
+    stakeUsed: '0 ETH',
+    reputationScore: 0,
+    pendingRewards: '0 ETH',
+  });
+  const [recentReports, setRecentReports] = useState([]);
 
-  // Mock data
-  const stats = {
-    reportCount: 3,
-    stakeUsed: '0.015 ETH',
-    reputationScore: 78,
-    pendingRewards: '0.012 ETH',
-  };
+  useEffect(() => {
+    async function loadData() {
+      // Wait for session context to load
+      if (sessionLoading) return;
+      
+      try {
+        const wallet = walletAddress;
+        
+        // If no wallet/session, user needs to generate one via Twilio chatbot
+        if (!wallet) {
+          console.log('No wallet found - user needs to generate session via WhatsApp');
+          setLoading(false);
+          return;
+        }
+
+        // Fetch stats if we have a wallet
+        const statsRes = await getReporterStats(wallet);
+        if (!statsRes.error) {
+          setStats(statsRes);
+        }
+
+        // Fetch recent reports
+        const reportsRes = await getReporterReports(wallet, 5);
+        if (Array.isArray(reportsRes)) {
+          setRecentReports(reportsRes);
+        }
+      } catch (error) {
+        console.error('Failed to load reporter data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [sessionLoading, walletAddress]);
 
   const copySessionId = () => {
-    navigator.clipboard.writeText(sessionId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (sessionId) {
+      navigator.clipboard.writeText(sessionId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const getStatusBadge = (status) => {
     const badges = {
       verified: { bg: 'bg-neo-teal', icon: CheckCircle, label: 'Verified' },
       pending: { bg: 'bg-neo-orange', icon: Clock, label: 'Pending' },
+      under_review: { bg: 'bg-neo-orange', icon: Clock, label: 'Pending' },
       rejected: { bg: 'bg-neo-maroon', icon: XCircle, label: 'Rejected' },
     };
-    const badge = badges[status];
+    const badge = badges[status] || badges.pending;
     const Icon = badge.icon;
     return (
-      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold uppercase ${badge.bg} ${status === 'pending' ? 'text-neo-navy' : 'text-neo-cream'} border-[2px] border-neo-navy`}>
+      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold uppercase ${badge.bg} ${status === 'pending' || status === 'under_review' ? 'text-neo-navy' : 'text-neo-cream'} border-[2px] border-neo-navy`}>
         <Icon className="w-3 h-3" />
         {badge.label}
       </span>
     );
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-10 h-10 animate-spin text-neo-teal" />
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show prompt to generate session if no wallet/session exists
+  if (!walletAddress || !sessionId) {
+    return (
+      <Layout>
+        <div className="min-h-[80vh] flex items-center justify-center p-4 bg-neo-navy">
+          <NeoCard className="p-8 text-center max-w-md">
+            <div className="w-20 h-20 bg-neo-teal border-[3px] border-neo-navy flex items-center justify-center mx-auto mb-6">
+              <Shield className="w-10 h-10 text-neo-cream" />
+            </div>
+            <h2 className="text-3xl font-heading font-bold mb-2 text-neo-navy">No Active Session</h2>
+            <p className="text-neo-navy/70 mb-6">
+              To submit anonymous reports, you need to generate a secure session via our WhatsApp chatbot.
+            </p>
+            <NeoCard variant="teal" className="p-4 mb-6 text-left">
+              <p className="text-neo-cream text-sm font-bold mb-2">How to get started:</p>
+              <ol className="text-neo-cream/80 text-sm space-y-2">
+                <li>1. Message our WhatsApp chatbot</li>
+                <li>2. Request a new report session</li>
+                <li>3. Click the link you receive</li>
+              </ol>
+            </NeoCard>
+            <Link to="/">
+              <NeoButton variant="orange" className="w-full">
+                Back to Home
+              </NeoButton>
+            </Link>
+          </NeoCard>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

@@ -1,22 +1,11 @@
-import { useState } from 'react';
-import { Shield, Award, TrendingUp, TrendingDown, CheckCircle, XCircle, Info } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Shield, Award, TrendingUp, TrendingDown, CheckCircle, XCircle, Info, Loader2 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
-
-// Mock reputation data
-const mockReputation = {
-  ensAlias: 'sayless-7x4k.eth',
-  score: 78,
-  tier: 'Trusted',
-  totalReports: 12,
-  acceptedReports: 9,
-  rejectedReports: 3,
-  juryVotes: 24,
-  correctVotes: 19,
-  rewardsEarned: '0.089 ETH',
-  penaltiesReceived: '0.002 ETH',
-};
+import { useSession } from '../context/SessionContext';
+import { getReputationData } from '../lib/api';
 
 const reputationTiers = [
   { name: 'Newcomer', min: 0, max: 25, color: 'bg-gray-400' },
@@ -26,23 +15,70 @@ const reputationTiers = [
   { name: 'Guardian', min: 91, max: 100, color: 'bg-neo-orange' },
 ];
 
-const recentActivity = [
-  { type: 'report_accepted', change: '+5', description: 'Report RPT-A7B3 verified', date: '2 days ago' },
-  { type: 'jury_correct', change: '+2', description: 'Correct jury vote on DSP-001', date: '3 days ago' },
-  { type: 'report_rejected', change: '-3', description: 'Report RPT-K2L1 rejected', date: '5 days ago' },
-  { type: 'report_accepted', change: '+5', description: 'Report RPT-M9N8 verified', date: '1 week ago' },
-  { type: 'jury_correct', change: '+2', description: 'Correct jury vote on DSP-002', date: '1 week ago' },
-];
-
 export default function ReputationPage() {
+  const { walletAddress, loading: sessionLoading } = useSession();
+  const navigate = useNavigate();
   const [showExplainer, setShowExplainer] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [reputation, setReputation] = useState({
+    ensAlias: 'sayless-xxxx.eth',
+    score: 0,
+    tier: 'Newcomer',
+    totalReports: 0,
+    acceptedReports: 0,
+    rejectedReports: 0,
+    juryVotes: 0,
+    correctVotes: 0,
+    rewardsEarned: '0 ETH',
+    penaltiesReceived: '0 ETH',
+    recentActivity: []
+  });
+
+  useEffect(() => {
+    if (sessionLoading) return;
+    
+    // Redirect if no wallet
+    const wallet = walletAddress || localStorage.getItem('walletAddress');
+    if (!wallet) {
+      navigate('/reporter');
+      return;
+    }
+
+    async function loadData() {
+      try {
+        const data = await getReputationData(wallet);
+        if (!data.error) {
+          setReputation(data);
+        }
+      } catch (error) {
+        console.error('Failed to load reputation data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [sessionLoading, walletAddress, navigate]);
 
   const currentTier = reputationTiers.find(
-    t => mockReputation.score >= t.min && mockReputation.score <= t.max
+    t => reputation.score >= t.min && reputation.score <= t.max
   ) || reputationTiers[0];
 
-  const acceptRate = Math.round((mockReputation.acceptedReports / mockReputation.totalReports) * 100);
-  const voteAccuracy = Math.round((mockReputation.correctVotes / mockReputation.juryVotes) * 100);
+  const acceptRate = reputation.totalReports > 0 
+    ? Math.round((reputation.acceptedReports / reputation.totalReports) * 100) 
+    : 0;
+  const voteAccuracy = reputation.juryVotes > 0 
+    ? Math.round((reputation.correctVotes / reputation.juryVotes) * 100) 
+    : 0;
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-10 h-10 animate-spin text-neo-teal" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -67,11 +103,11 @@ export default function ReputationPage() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-400 uppercase">Anonymous Identity</p>
-                  <p className="font-mono font-bold text-2xl text-neo-orange">{mockReputation.ensAlias}</p>
+                  <p className="font-mono font-bold text-2xl text-neo-orange">{reputation.ensAlias}</p>
                 </div>
               </div>
               <div className="text-center md:text-right">
-                <p className="text-6xl font-heading font-bold text-neo-white">{mockReputation.score}</p>
+                <p className="text-6xl font-heading font-bold text-neo-white">{reputation.score}</p>
                 <span className={`neo-badge ${currentTier.color} text-neo-black`}>
                   {currentTier.name}
                 </span>
@@ -104,10 +140,10 @@ export default function ReputationPage() {
               {/* Indicator */}
               <div 
                 className="absolute top-0 w-1 h-8 bg-neo-black"
-                style={{ left: `${mockReputation.score}%`, transform: 'translateX(-50%)' }}
+                style={{ left: `${reputation.score}%`, transform: 'translateX(-50%)' }}
               >
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 neo-badge-orange text-xs">
-                  {mockReputation.score}
+                  {reputation.score}
                 </div>
               </div>
             </div>
@@ -143,7 +179,7 @@ export default function ReputationPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Total Reports</span>
-                  <span className="font-bold text-xl">{mockReputation.totalReports}</span>
+                  <span className="font-bold text-xl">{reputation.totalReports}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -151,7 +187,7 @@ export default function ReputationPage() {
                     <CheckCircle className="w-4 h-4" />
                     Accepted
                   </span>
-                  <span className="font-bold text-xl text-green-600">{mockReputation.acceptedReports}</span>
+                  <span className="font-bold text-xl text-green-600">{reputation.acceptedReports}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -159,7 +195,7 @@ export default function ReputationPage() {
                     <XCircle className="w-4 h-4" />
                     Rejected
                   </span>
-                  <span className="font-bold text-xl text-red-600">{mockReputation.rejectedReports}</span>
+                  <span className="font-bold text-xl text-red-600">{reputation.rejectedReports}</span>
                 </div>
 
                 {/* Accept Rate Bar */}
@@ -185,7 +221,7 @@ export default function ReputationPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Total Votes</span>
-                  <span className="font-bold text-xl">{mockReputation.juryVotes}</span>
+                  <span className="font-bold text-xl">{reputation.juryVotes}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -193,7 +229,7 @@ export default function ReputationPage() {
                     <TrendingUp className="w-4 h-4" />
                     Correct
                   </span>
-                  <span className="font-bold text-xl text-green-600">{mockReputation.correctVotes}</span>
+                  <span className="font-bold text-xl text-green-600">{reputation.correctVotes}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -201,7 +237,7 @@ export default function ReputationPage() {
                     <TrendingDown className="w-4 h-4" />
                     Incorrect
                   </span>
-                  <span className="font-bold text-xl text-red-600">{mockReputation.juryVotes - mockReputation.correctVotes}</span>
+                  <span className="font-bold text-xl text-red-600">{reputation.juryVotes - reputation.correctVotes}</span>
                 </div>
 
                 {/* Accuracy Bar */}
@@ -228,7 +264,7 @@ export default function ReputationPage() {
                 <Award className="w-6 h-6" />
                 <span className="font-heading font-bold">Rewards Earned</span>
               </div>
-              <p className="text-3xl font-heading font-bold">{mockReputation.rewardsEarned}</p>
+              <p className="text-3xl font-heading font-bold">{reputation.rewardsEarned}</p>
             </NeoCard>
             
             <NeoCard className="p-6 bg-red-100">
@@ -236,7 +272,7 @@ export default function ReputationPage() {
                 <TrendingDown className="w-6 h-6 text-red-600" />
                 <span className="font-heading font-bold text-red-600">Penalties</span>
               </div>
-              <p className="text-3xl font-heading font-bold text-red-600">{mockReputation.penaltiesReceived}</p>
+              <p className="text-3xl font-heading font-bold text-red-600">{reputation.penaltiesReceived}</p>
             </NeoCard>
           </div>
 
@@ -246,7 +282,7 @@ export default function ReputationPage() {
               <h3 className="font-heading font-bold text-lg">Recent Activity</h3>
             </div>
             <div className="divide-y-[2px] divide-neo-black">
-              {recentActivity.map((activity, i) => (
+              {(reputation.recentActivity || []).map((activity, i) => (
                 <div key={i} className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={`
