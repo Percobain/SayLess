@@ -96,9 +96,7 @@ router.post('/decrypt/:id', async (req, res) => {
       aiAnalysis,
       webContext: webContext.success ? {
         sources: webContext.sources,
-        answer: webContext.answer,
-        sourceNetwork: webContext.sourceNetwork,
-        metadata: webContext.metadata
+        answer: webContext.answer
       } : null
     });
     
