@@ -30,11 +30,15 @@ router.get('/session/:id', async (req, res) => {
         valid: false 
       });
     }
+
+    // Fetch user wallet context
+    const user = await User.findOne({ odacityUserId: session.odacityUserId });
     
     res.json({ 
       valid: true,
       sessionId: session.sessionId,
-      expiresAt: session.expiresAt
+      expiresAt: session.expiresAt,
+      wallet: user ? user.wallet : null
     });
     
   } catch (error) {

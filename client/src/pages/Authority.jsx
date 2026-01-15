@@ -291,6 +291,32 @@ export default function Authority() {
                           </div>
                           <p className="font-bold text-neo-cream">AI Analysis (Gemini)</p>
                         </div>
+
+                        {/* Verdict */}
+                        {decryptedData.aiAnalysis.verdict && (
+                          <div className="mb-4 p-3 bg-neo-teal/20 border-l-4 border-neo-orange">
+                            <p className="text-neo-cream text-sm italic">"{decryptedData.aiAnalysis.verdict}"</p>
+                          </div>
+                        )}
+
+                        {/* Possibility Score Bar */}
+                        {decryptedData.aiAnalysis.possibilityScore !== undefined && (
+                          <div className="mb-4">
+                            <div className="flex justify-between text-xs text-neo-cream/60 mb-1">
+                              <span>Possibility of Truth</span>
+                              <span className="font-bold text-neo-orange">{decryptedData.aiAnalysis.possibilityScore}%</span>
+                            </div>
+                            <div className="w-full h-3 bg-neo-navy-light border border-neo-cream/20">
+                              <div 
+                                className={`h-full transition-all ${
+                                  decryptedData.aiAnalysis.possibilityScore >= 70 ? 'bg-neo-teal' :
+                                  decryptedData.aiAnalysis.possibilityScore >= 40 ? 'bg-neo-orange' : 'bg-neo-maroon'
+                                }`}
+                                style={{ width: `${decryptedData.aiAnalysis.possibilityScore}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
                         
                         <div className="grid grid-cols-2 gap-3 text-sm">
                           <div className="p-2 bg-neo-teal/20">
@@ -316,6 +342,47 @@ export default function Authority() {
                         <div className="mt-4 pt-3 border-t border-neo-teal/30">
                           <p className="text-neo-cream/60 text-xs">Suggested Action</p>
                           <p className="capitalize font-bold text-neo-orange text-lg">{decryptedData.aiAnalysis.suggestedAction}</p>
+                        </div>
+
+                        {/* Web Context Relevance */}
+                        {decryptedData.aiAnalysis.webContextRelevance && (
+                          <div className="mt-3 pt-3 border-t border-neo-teal/30">
+                            <p className="text-neo-cream/60 text-xs">Web Context Analysis</p>
+                            <p className="text-neo-cream text-sm">{decryptedData.aiAnalysis.webContextRelevance}</p>
+                          </div>
+                        )}
+                      </NeoCard>
+                    )}
+
+                    {/* Web Search Context */}
+                    {decryptedData.webContext && decryptedData.webContext.sources && decryptedData.webContext.sources.length > 0 && (
+                      <NeoCard className="p-4 bg-neo-cream/5 border-neo-teal/30">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-6 h-6 bg-neo-teal flex items-center justify-center">
+                            <svg className="w-4 h-4 text-neo-cream" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                          </div>
+                          <p className="font-bold text-neo-navy text-sm">Web Search Context (Tavily)</p>
+                        </div>
+                        
+                        {decryptedData.webContext.answer && (
+                          <p className="text-neo-navy/80 text-sm mb-3 italic">"{decryptedData.webContext.answer}"</p>
+                        )}
+                        
+                        <div className="space-y-2">
+                          {decryptedData.webContext.sources.slice(0, 3).map((source, idx) => (
+                            <a 
+                              key={idx} 
+                              href={source.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="block p-2 bg-neo-cream border border-neo-navy/20 hover:border-neo-teal transition-colors"
+                            >
+                              <p className="text-xs font-bold text-neo-navy truncate">{source.title}</p>
+                              <p className="text-xs text-neo-navy/60 line-clamp-2">{source.snippet}</p>
+                            </a>
+                          ))}
                         </div>
                       </NeoCard>
                     )}

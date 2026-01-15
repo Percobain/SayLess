@@ -7,7 +7,7 @@ let privyClient;
 
 async function initPrivy() {
   const funderKey = process.env.FUNDER_PRIVATE_KEY;
-  const rpcUrl = process.env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.ethpandaops.io';
+  const rpcUrl = process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia.gateway.tatum.io';
   const privyAppId = process.env.PRIVY_APP_ID;
   const privyAppSecret = process.env.PRIVY_APP_SECRET;
   

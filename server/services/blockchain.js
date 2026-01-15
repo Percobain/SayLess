@@ -6,7 +6,7 @@ let signer;
 let contract;
 
 async function initBlockchain() {
-  const rpcUrl = process.env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.ethpandaops.io';
+  const rpcUrl = process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia.gateway.tatum.io';
   const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
   const contractAddress = process.env.CONTRACT_ADDRESS;
   

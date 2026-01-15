@@ -10,6 +10,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "@privy-io/node": "^0.7.0",
+    "@tavily/core": "^0.7.1",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.0",

@@ -24,16 +24,47 @@ const crimeCategories = [
 export default function Report() {
   const { sessionId: paramSessionId } = useParams();
   const [searchParams] = useSearchParams();
-  const sessionId = paramSessionId || searchParams.get('session') || 'DEMO-SESSION';
+  const sessionId = paramSessionId || searchParams.get('session');
   
   const [category, setCategory] = useState('');
   const [severity, setSeverity] = useState(5);
   const [text, setText] = useState('');
   const [files, setFiles] = useState([]);
-  const [status, setStatus] = useState('valid');
+  const [status, setStatus] = useState('loading'); // loading, valid, encrypting, submitting, done, error
+  const [walletAddress, setWalletAddress] = useState(null);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [showWarning, setShowWarning] = useState(false);
+
+  // Check session validity on mount
+  useEffect(() => {
+    async function validateSession() {
+      if (!sessionId || sessionId === 'DEMO-SESSION') {
+        // Allow demo/dev mode if needed, or enforce strictness
+        setStatus('valid');
+        return;
+      }
+
+      try {
+        const data = await checkSession(sessionId);
+        if (data.valid) {
+          setStatus('valid');
+          if (data.wallet) {
+            setWalletAddress(data.wallet);
+          }
+        } else {
+          setStatus('invalid');
+          setError(data.error || 'Invalid session');
+        }
+      } catch (err) {
+        console.error('Session check failed', err);
+        setStatus('invalid');
+        setError('Could not verify session');
+      }
+    }
+
+    validateSession();
+  }, [sessionId]);
 
   const handleSubmit = async () => {
     if (!text.trim() || !category) {
@@ -67,14 +98,50 @@ export default function Report() {
         setStatus('done');
       } else {
         setError(data.error || 'Submission failed');
-        setStatus('error');
+        setStatus('valid'); // Return to valid state to retry
       }
     } catch (err) {
       console.error(err);
       setError(err.message || 'An error occurred');
-      setStatus('error');
+      setStatus('valid'); // Return to valid state to retry
     }
   };
+
+  // Loading state
+  if (status === 'loading') {
+    return (
+      <Layout>
+        <div className="min-h-[80vh] flex items-center justify-center p-4 bg-neo-cream">
+           <div className="text-center">
+              <div className="w-16 h-16 border-4 border-neo-orange border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="font-heading font-bold text-neo-navy">Verifying Session...</p>
+           </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Invalid state
+  if (status === 'invalid') {
+    return (
+      <Layout>
+        <div className="min-h-[80vh] flex items-center justify-center p-4 bg-neo-maroon">
+          <NeoCard className="p-8 text-center max-w-md">
+            <div className="w-20 h-20 bg-neo-cream border-[3px] border-neo-navy flex items-center justify-center mx-auto mb-6 rounded-full">
+              <AlertCircle className="w-10 h-10 text-neo-maroon" />
+            </div>
+            <h2 className="text-3xl font-heading font-bold mb-2 text-neo-navy">Session Invalid</h2>
+            <p className="text-neo-navy/70 mb-6 font-bold">
+              {error || 'This report link is invalid or has expired.'}
+            </p>
+            <p className="text-sm text-neo-navy/60 mb-6">
+              Please generate a new report link from WhatsApp.
+            </p>
+          </NeoCard>
+        </div>
+      </Layout>
+    );
+  }
 
   // Encrypting state
   if (status === 'encrypting') {
@@ -173,7 +240,7 @@ export default function Report() {
               </a>
               <Link to="/reporter">
                 <NeoButton variant="navy" className="w-full">
-                  Back to Dashboard
+                  Create Another Report
                 </NeoButton>
               </Link>
             </div>
@@ -196,12 +263,22 @@ export default function Report() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-4xl md:text-5xl font-heading font-bold text-neo-cream mb-2">Create Report</h1>
-              <div className="flex items-center gap-3">
-                <span className="neo-badge-orange">
-                  <Lock className="w-3 h-3" />
-                  Encrypted
-                </span>
-                <span className="text-sm text-neo-cream/50 font-mono">Session: {sessionId}</span>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <span className="neo-badge-orange">
+                    <Lock className="w-3 h-3" />
+                    Encrypted
+                  </span>
+                  <span className="text-sm text-neo-cream/50 font-mono">Session: {sessionId}</span>
+                </div>
+                {walletAddress && (
+                   <div className="flex items-center gap-2 text-neo-teal text-sm font-mono">
+                      <span>Reporting as:</span>
+                      <span className="bg-neo-navy-light px-2 py-0.5 rounded border border-neo-teal/30 text-neo-cream">
+                        {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                      </span>
+                   </div>
+                )}
               </div>
             </div>
             <NeoCard className="p-3 bg-neo-teal border-neo-teal">
