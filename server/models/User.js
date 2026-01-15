@@ -27,8 +27,20 @@ const userSchema = new mongoose.Schema({
   },
   reputation: {
     type: Number,
-    default: 0
+    default: 50
   },
+  juryReputation: {
+    type: Number,
+    default: 50
+  },
+  reputationHistory: [{
+    type: { type: String, default: 'reporter' },
+    change: Number,
+    reason: String,
+    oldValue: Number,
+    newValue: Number,
+    timestamp: { type: Date, default: Date.now }
+  }],
   createdAt: {
     type: Date,
     default: Date.now

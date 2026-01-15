@@ -4,9 +4,11 @@ import Session from '../models/Session.js';
 import User from '../models/User.js';
 import { fetchFromIPFS } from '../services/pinata.js';
 import { decryptReport, decryptFile } from '../services/crypto.js';
-import { analyzeReport } from '../services/gemini.js';
+import { analyzeReport, analyzeEvidenceFiles } from '../services/gemini.js';
 import { searchWeb, generateSearchQuery } from '../services/tavily.js';
 import { verifyReport, rejectReport, getReputation } from '../services/blockchain.js';
+import { updateReporterReputation, calculateJuryVerdictReputations, REPUTATION, getReputation as getReputationDB } from '../services/reputation.js';
+import JuryVote from '../models/JuryVote.js';
 
 const router = express.Router();
 
@@ -15,17 +17,27 @@ router.get('/reports', async (req, res) => {
   try {
     const reports = await Report.find().sort({ createdAt: -1 });
     
-    // Enrich with session data
+    // Enrich with session data and jury votes
     const enrichedReports = await Promise.all(reports.map(async (report) => {
       const session = await Session.findOne({ sessionId: report.sessionId });
       const user = session ? await User.findOne({ odacityUserId: session.odacityUserId }) : null;
       
-      let reputation = 0;
+      // Get reporter reputation from DB
+      let reporterReputation = 50;
       if (user) {
         try {
-          reputation = Number(await getReputation(user.wallet));
+          const repData = await getReputationDB(user.wallet);
+          reporterReputation = repData.reporterReputation;
         } catch (e) {}
       }
+      
+      // Get jury votes
+      const juryVotes = await JuryVote.find({ reportId: report._id });
+      const validVotes = juryVotes.filter(v => v.vote === 'valid');
+      const invalidVotes = juryVotes.filter(v => v.vote === 'invalid');
+      const validWeight = validVotes.reduce((sum, v) => sum + v.weight, 0);
+      const invalidWeight = invalidVotes.reduce((sum, v) => sum + v.weight, 0);
+      const totalWeight = validWeight + invalidWeight;
       
       return {
         _id: report._id,
@@ -38,7 +50,17 @@ router.get('/reports', async (req, res) => {
         contractReportId: session?.contractReportId,
         txHash: session?.txHash,
         reporterWallet: user?.wallet,
-        reporterReputation: reputation,
+        reporterReputation,
+        juryVotes: {
+          total: juryVotes.length,
+          valid: validVotes.length,
+          invalid: invalidVotes.length,
+          validWeight,
+          invalidWeight,
+          validPercent: totalWeight > 0 ? Math.round((validWeight / totalWeight) * 100) : 0,
+          invalidPercent: totalWeight > 0 ? Math.round((invalidWeight / totalWeight) * 100) : 0,
+          juryVerdict: totalWeight > 0 ? (validWeight >= invalidWeight ? 'valid' : 'invalid') : 'pending'
+        },
         createdAt: report.createdAt
       };
     }));
@@ -101,6 +123,14 @@ router.post('/decrypt/:id', async (req, res) => {
     const aiAnalysis = await analyzeReport(decrypted, webContext);
     console.log('[Authority] AI analysis:', aiAnalysis);
     
+    // Analyze evidence files for AI-generated content
+    let evidenceAnalysis = [];
+    if (decryptedFiles.length > 0) {
+      console.log('[Authority] Analyzing evidence files for AI generation...');
+      evidenceAnalysis = await analyzeEvidenceFiles(decryptedFiles);
+      console.log('[Authority] Evidence analysis complete:', evidenceAnalysis.length, 'files analyzed');
+    }
+    
     // Save to report
     report.decryptedContent = decrypted;
     report.aiAnalysis = aiAnalysis;
@@ -109,6 +139,7 @@ router.post('/decrypt/:id', async (req, res) => {
     res.json({
       decrypted,
       files: decryptedFiles,
+      evidenceAnalysis,
       aiAnalysis,
       webContext: webContext.success ? {
         sources: webContext.sources,
@@ -150,6 +181,14 @@ router.post('/verify/:id', async (req, res) => {
     session.rewardAmount = rewardAmount;
     await session.save();
     
+    // Update reporter reputation
+    const user = await User.findOne({ odacityUserId: session.odacityUserId });
+    if (user) {
+      await updateReporterReputation(user.wallet, REPUTATION.REPORT_VERIFIED, 'Report verified by authority');
+      // Calculate jury reputations for this case
+      await calculateJuryVerdictReputations(report._id, 'verified');
+    }
+    
     res.json({ 
       success: true, 
       txHash,
@@ -186,6 +225,14 @@ router.post('/reject/:id', async (req, res) => {
     
     session.status = 'rejected';
     await session.save();
+    
+    // Update reporter reputation
+    const user = await User.findOne({ odacityUserId: session.odacityUserId });
+    if (user) {
+      await updateReporterReputation(user.wallet, REPUTATION.REPORT_REJECTED, 'Report rejected by authority');
+      // Calculate jury reputations for this case
+      await calculateJuryVerdictReputations(report._id, 'rejected');
+    }
     
     res.json({ 
       success: true, 

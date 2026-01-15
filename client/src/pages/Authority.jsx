@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Shield, ArrowLeft, RefreshCw, Eye, CheckCircle, XCircle,
   Clock, AlertTriangle, ExternalLink, Bot, FileText, Filter,
-  Network, FileSearch, Brain
+  Network, FileSearch, Brain, Users, ThumbsUp, ThumbsDown, User
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
@@ -347,6 +347,64 @@ export default function Authority() {
                             </div>
                           )}
                           
+                          {/* Reporter Info & Jury Verdict */}
+                          <div className="grid grid-cols-2 gap-4">
+                            {/* Reporter Info */}
+                            <NeoCard className="p-4">
+                              <p className="text-xs uppercase font-bold text-neo-navy/60 mb-2 flex items-center gap-2">
+                                <User className="w-4 h-4" />
+                                Reporter
+                              </p>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-neo-navy/70 font-mono truncate max-w-[150px]">
+                                  {selectedReport.reporterWallet ? `${selectedReport.reporterWallet.slice(0, 8)}...${selectedReport.reporterWallet.slice(-6)}` : 'Unknown'}
+                                </span>
+                                <span className={`font-bold text-lg ${
+                                  selectedReport.reporterReputation >= 70 ? 'text-neo-teal' :
+                                  selectedReport.reporterReputation >= 40 ? 'text-neo-orange' : 'text-neo-maroon'
+                                }`}>
+                                  Rep: {selectedReport.reporterReputation || 50}
+                                </span>
+                              </div>
+                            </NeoCard>
+                            
+                            {/* Jury Verdict */}
+                            <NeoCard className="p-4">
+                              <p className="text-xs uppercase font-bold text-neo-navy/60 mb-2 flex items-center gap-2">
+                                <Users className="w-4 h-4" />
+                                Jury Verdict
+                              </p>
+                              {selectedReport.juryVotes?.total > 0 ? (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="flex items-center gap-1 text-neo-teal font-bold">
+                                      <ThumbsUp className="w-4 h-4" />
+                                      {selectedReport.juryVotes.validPercent}%
+                                    </span>
+                                    <span className="text-neo-navy/60 text-sm">
+                                      {selectedReport.juryVotes.total} voters
+                                    </span>
+                                    <span className="flex items-center gap-1 text-neo-maroon font-bold">
+                                      {selectedReport.juryVotes.invalidPercent}%
+                                      <ThumbsDown className="w-4 h-4" />
+                                    </span>
+                                  </div>
+                                  <div className="h-3 bg-neo-cream border-[2px] border-neo-navy flex overflow-hidden">
+                                    <div className="bg-neo-teal h-full" style={{ width: `${selectedReport.juryVotes.validPercent}%` }} />
+                                    <div className="bg-neo-maroon h-full" style={{ width: `${selectedReport.juryVotes.invalidPercent}%` }} />
+                                  </div>
+                                  <p className="text-center text-sm font-bold">
+                                    Jury says: <span className={selectedReport.juryVotes.juryVerdict === 'valid' ? 'text-neo-teal' : 'text-neo-maroon'}>
+                                      {selectedReport.juryVotes.juryVerdict === 'valid' ? 'VALID' : 'INVALID'}
+                                    </span>
+                                  </p>
+                                </div>
+                              ) : (
+                                <p className="text-neo-navy/50 text-sm">No jury votes yet</p>
+                              )}
+                            </NeoCard>
+                          </div>
+                          
                           {/* Decrypted Content */}
                           <div>
                             <p className="text-xs uppercase font-bold text-neo-navy/60 mb-2">{t('authority.decryptedReport')}</p>
@@ -390,19 +448,58 @@ export default function Authority() {
                                 {decryptedData.files.map((file, index) => {
                                   const isImage = file.type?.startsWith('image/');
                                   const isVideo = file.type?.startsWith('video/');
+                                  // Find matching evidence analysis
+                                  const analysis = decryptedData.evidenceAnalysis?.find(a => a.filename === file.filename);
                                   
                                   return (
                                     <NeoCard key={index} className="p-3 overflow-hidden">
                                       {isImage && file.dataUrl ? (
                                         <div className="space-y-2">
-                                          <img
-                                            src={file.dataUrl}
-                                            alt={file.filename || `Evidence ${index + 1}`}
-                                            className="w-full h-48 object-cover rounded border-[2px] border-neo-navy"
-                                          />
+                                          <div className="relative">
+                                            <img
+                                              src={file.dataUrl}
+                                              alt={file.filename || `Evidence ${index + 1}`}
+                                              className="w-full h-48 object-cover rounded border-[2px] border-neo-navy"
+                                            />
+                                            {/* AI Detection Badge */}
+                                            {analysis && analysis.isAnalyzable && (
+                                              <div className={`absolute top-2 right-2 px-2 py-1 text-[10px] font-bold uppercase border-[2px] ${
+                                                analysis.isAIGenerated 
+                                                  ? 'bg-neo-maroon text-neo-cream border-neo-maroon' 
+                                                  : analysis.isValidEvidence === false
+                                                    ? 'bg-neo-orange text-neo-navy border-neo-orange'
+                                                    : 'bg-neo-teal text-neo-cream border-neo-teal'
+                                              }`}>
+                                                {analysis.isAIGenerated 
+                                                  ? '⚠️ AI GENERATED' 
+                                                  : analysis.isValidEvidence === false 
+                                                    ? '⚠️ INVALID' 
+                                                    : '✓ VALID'}
+                                              </div>
+                                            )}
+                                          </div>
                                           <p className="text-xs text-neo-navy/70 truncate font-bold">
                                             {file.filename || `Image ${index + 1}`}
                                           </p>
+                                          {/* AI Analysis Details */}
+                                          {analysis && analysis.isAnalyzable && (
+                                            <div className={`p-2 text-xs border-l-4 ${
+                                              analysis.isAIGenerated 
+                                                ? 'bg-neo-maroon/10 border-neo-maroon' 
+                                                : analysis.isValidEvidence === false
+                                                  ? 'bg-neo-orange/10 border-neo-orange'
+                                                  : 'bg-neo-teal/10 border-neo-teal'
+                                            }`}>
+                                              <div className="flex justify-between mb-1">
+                                                <span className="font-bold">Confidence:</span>
+                                                <span>{analysis.confidence}%</span>
+                                              </div>
+                                              <p className="text-neo-navy/70">{analysis.verdict}</p>
+                                              {analysis.evidenceAssessment && (
+                                                <p className="mt-1 text-neo-navy/60 italic">{analysis.evidenceAssessment}</p>
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
                                       ) : isVideo && file.dataUrl ? (
                                         <div className="space-y-2">
@@ -416,6 +513,11 @@ export default function Authority() {
                                           <p className="text-xs text-neo-navy/70 truncate font-bold">
                                             {file.filename || `Video ${index + 1}`}
                                           </p>
+                                          {analysis && (
+                                            <div className="p-2 text-xs bg-neo-orange/10 border-l-4 border-neo-orange">
+                                              <p className="text-neo-navy/70">{analysis.verdict}</p>
+                                            </div>
+                                          )}
                                         </div>
                                       ) : (
                                         <div className="space-y-2">
