@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import {
   Shield, Lock, Upload, CheckCircle, AlertCircle,
-  ExternalLink, ArrowLeft, FileText, AlertTriangle, Zap
+  ExternalLink, ArrowLeft, FileText, AlertTriangle, Zap, X
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
@@ -30,6 +30,7 @@ export default function Report() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [showWarning, setShowWarning] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Check session validity on mount
   useEffect(() => {
@@ -79,6 +80,32 @@ export default function Report() {
     { id: 'cybercrime', label: t('report.categories.cybercrime'), icon: '💻' },
     { id: 'other', label: t('report.categories.other'), icon: '📋' },
   ];
+
+  // Handle file selection with validation
+  const handleFileSelection = (newFiles) => {
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    const validFiles = [];
+    const errors = [];
+
+    newFiles.forEach((file) => {
+      if (file.size > MAX_SIZE) {
+        errors.push(`${file.name} exceeds 10MB limit`);
+      } else {
+        validFiles.push(file);
+      }
+    });
+
+    if (errors.length > 0) {
+      setError(errors.join(', '));
+    }
+
+    if (validFiles.length > 0) {
+      setFiles((prev) => [...prev, ...validFiles]);
+      if (errors.length === 0) {
+        setError(null);
+      }
+    }
+  };
 
   const handleSubmit = async () => {
     if (!text.trim() || !category) {
@@ -399,23 +426,87 @@ export default function Report() {
                   <label className="block font-heading font-bold mb-3 text-neo-navy text-lg">
                     {t('report.evidence')} <span className="text-neo-navy/50 text-sm font-normal">{t('report.optional')}</span>
                   </label>
-                  <div className="border-[3px] border-dashed border-neo-navy p-8 text-center hover:bg-neo-teal/10 transition-colors cursor-pointer">
+                  <div
+                    className="border-[3px] border-dashed border-neo-navy p-8 text-center hover:bg-neo-teal/10 transition-colors cursor-pointer"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const droppedFiles = Array.from(e.dataTransfer.files);
+                      handleFileSelection(droppedFiles);
+                    }}
+                  >
                     <Upload className="w-12 h-12 text-neo-teal mx-auto mb-4" />
                     <input
+                      ref={fileInputRef}
                       type="file"
                       multiple
-                      onChange={(e) => setFiles([...e.target.files])}
+                      accept="image/*,video/*,.pdf,.doc,.docx,.txt"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          handleFileSelection(Array.from(e.target.files));
+                          // Reset input so same file can be selected again
+                          e.target.value = '';
+                        }
+                      }}
                       className="hidden"
                       id="file-upload"
+                      disabled={status === 'encrypting' || status === 'submitting'}
                     />
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      <NeoButton variant="teal" size="sm">{t('report.chooseFiles')}</NeoButton>
-                      <p className="text-sm text-neo-navy/60 mt-3">{t('report.filesNote')}</p>
-                    </label>
+                    <div 
+                      className="cursor-pointer" 
+                      onClick={() => {
+                        if (fileInputRef.current && status !== 'encrypting' && status !== 'submitting') {
+                          fileInputRef.current.click();
+                        }
+                      }}
+                    >
+                      <NeoButton 
+                        variant="teal" 
+                        size="sm" 
+                        type="button" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (fileInputRef.current && status !== 'encrypting' && status !== 'submitting') {
+                            fileInputRef.current.click();
+                          }
+                        }}
+                      >
+                        {t('report.chooseFiles')}
+                      </NeoButton>
+                      <p className="text-sm text-neo-navy/60 mt-3">Images, videos, documents • Max 10MB each</p>
+                    </div>
                     {files.length > 0 && (
-                      <NeoCard variant="orange" className="mt-4 p-3 inline-block">
-                        <span className="font-bold text-neo-navy">{files.length} {t('report.filesSelected')}</span>
-                      </NeoCard>
+                      <div className="mt-4 space-y-2">
+                        {files.map((file, index) => (
+                          <NeoCard key={index} variant="orange" className="p-3 flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-neo-navy truncate">{file.name}</p>
+                              <p className="text-xs text-neo-navy/70">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const newFiles = files.filter((_, i) => i !== index);
+                                setFiles(newFiles);
+                              }}
+                              className="ml-3 text-neo-maroon hover:text-neo-navy transition-colors"
+                              type="button"
+                              disabled={status === 'encrypting' || status === 'submitting'}
+                              title="Remove file"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </NeoCard>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>

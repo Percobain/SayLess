@@ -381,6 +381,66 @@ export default function Authority() {
                               </div>
                             </div>
                           )}
+
+                          {/* Evidence Files - Images and Videos */}
+                          {decryptedData.files && decryptedData.files.length > 0 && (
+                            <div className="mt-6">
+                              <p className="text-xs uppercase font-bold text-neo-navy/60 mb-3">Evidence Files</p>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {decryptedData.files.map((file, index) => {
+                                  const isImage = file.type?.startsWith('image/');
+                                  const isVideo = file.type?.startsWith('video/');
+                                  
+                                  return (
+                                    <NeoCard key={index} className="p-3 overflow-hidden">
+                                      {isImage && file.dataUrl ? (
+                                        <div className="space-y-2">
+                                          <img
+                                            src={file.dataUrl}
+                                            alt={file.filename || `Evidence ${index + 1}`}
+                                            className="w-full h-48 object-cover rounded border-[2px] border-neo-navy"
+                                          />
+                                          <p className="text-xs text-neo-navy/70 truncate font-bold">
+                                            {file.filename || `Image ${index + 1}`}
+                                          </p>
+                                        </div>
+                                      ) : isVideo && file.dataUrl ? (
+                                        <div className="space-y-2">
+                                          <video
+                                            src={file.dataUrl}
+                                            controls
+                                            className="w-full h-48 object-cover rounded border-[2px] border-neo-navy"
+                                          >
+                                            Your browser does not support the video tag.
+                                          </video>
+                                          <p className="text-xs text-neo-navy/70 truncate font-bold">
+                                            {file.filename || `Video ${index + 1}`}
+                                          </p>
+                                        </div>
+                                      ) : (
+                                        <div className="space-y-2">
+                                          <div className="w-full h-48 bg-neo-navy/10 border-[2px] border-neo-navy flex items-center justify-center rounded">
+                                            <FileText className="w-12 h-12 text-neo-navy/40" />
+                                          </div>
+                                          <p className="text-xs text-neo-navy/70 truncate font-bold">
+                                            {file.filename || `File ${index + 1}`}
+                                          </p>
+                                          <a
+                                            href={file.dataUrl}
+                                            download={file.filename}
+                                            className="text-xs text-neo-orange hover:underline flex items-center gap-1"
+                                          >
+                                            <ExternalLink className="w-3 h-3" />
+                                            Download
+                                          </a>
+                                        </div>
+                                      )}
+                                    </NeoCard>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 

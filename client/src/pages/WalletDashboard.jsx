@@ -170,40 +170,50 @@ export default function WalletDashboard() {
                     <h2 className="font-heading font-bold text-lg text-neo-cream">{t('wallet.transactionHistory')}</h2>
                   </div>
                   <div className="divide-y-[2px] divide-neo-navy">
-                    {(wallet.transactions || []).map((tx) => (
-                      <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-neo-cream/50">
-                        <div className="flex items-center gap-4">
-                          <div className={`
-                            w-10 h-10 border-[3px] border-neo-navy flex items-center justify-center
-                            ${tx.type === 'reward' ? 'bg-neo-teal' : 'bg-neo-orange'}
-                          `}>
-                            {tx.type === 'reward' ? (
-                              <ArrowDownLeft className={`w-5 h-5 ${tx.type === 'reward' ? 'text-neo-cream' : 'text-neo-navy'}`} />
-                            ) : (
-                              <ArrowUpRight className="w-5 h-5 text-neo-navy" />
-                            )}
+                    {(wallet.transactions || []).map((tx) => {
+                      // Determine icon and colors based on transaction type
+                      const isReward = tx.type === 'reward';
+                      const isRejected = tx.type === 'penalty' || tx.status === 'rejected';
+                      
+                      return (
+                        <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-neo-cream/50">
+                          <div className="flex items-center gap-4">
+                            <div className={`
+                              w-10 h-10 border-[3px] border-neo-navy flex items-center justify-center
+                              ${isReward ? 'bg-neo-teal' : isRejected ? 'bg-neo-maroon' : 'bg-neo-orange'}
+                            `}>
+                              {isReward ? (
+                                <ArrowDownLeft className="w-5 h-5 text-neo-cream" />
+                              ) : isRejected ? (
+                                <ArrowUpRight className="w-5 h-5 text-neo-cream rotate-45" />
+                              ) : (
+                                <ArrowUpRight className="w-5 h-5 text-neo-navy" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-neo-navy">
+                                {tx.label || 'Transaction'}
+                              </p>
+                              <p className="text-sm text-neo-navy/60">{tx.time}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-bold text-neo-navy">{t(`wallet.${tx.labelKey}`)}</p>
-                            <p className="text-sm text-neo-navy/60">{tx.time}</p>
+                          <div className="text-right">
+                            <p className={`font-mono font-bold ${isReward ? 'text-neo-teal' : isRejected ? 'text-neo-maroon' : 'text-neo-orange'}`}>
+                              {tx.amount}
+                            </p>
+                            <a
+                              href={`https://sepolia.etherscan.io/tx/${tx.hash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-neo-navy/50 hover:text-neo-orange flex items-center gap-1 justify-end"
+                            >
+                              {tx.hash?.slice(0, 20)}...
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className={`font-mono font-bold ${tx.type === 'reward' ? 'text-neo-teal' : 'text-neo-maroon'}`}>
-                            {tx.amount}
-                          </p>
-                          <a
-                            href={`https://sepolia.etherscan.io/tx/${tx.hash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-neo-navy/50 hover:text-neo-orange flex items-center gap-1 justify-end"
-                          >
-                            {tx.hash}
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <div className="p-3 border-t-[2px] border-neo-navy text-center">
                     <a href="#" className="text-sm font-bold text-neo-teal hover:text-neo-orange">

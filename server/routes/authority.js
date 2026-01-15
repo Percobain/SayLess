@@ -3,7 +3,7 @@ import Report from '../models/Report.js';
 import Session from '../models/Session.js';
 import User from '../models/User.js';
 import { fetchFromIPFS } from '../services/pinata.js';
-import { decryptReport } from '../services/crypto.js';
+import { decryptReport, decryptFile } from '../services/crypto.js';
 import { analyzeReport } from '../services/gemini.js';
 import { searchWeb, generateSearchQuery } from '../services/tavily.js';
 import { verifyReport, rejectReport, getReputation } from '../services/blockchain.js';
@@ -75,6 +75,21 @@ router.post('/decrypt/:id', async (req, res) => {
     const decrypted = decryptReport(encryptedPayload, authorityKey);
     console.log('[Authority] Decryption successful');
     
+    // Decrypt files if present
+    let decryptedFiles = [];
+    if (encryptedPayload.files && Array.isArray(encryptedPayload.files) && encryptedPayload.files.length > 0) {
+      console.log(`[Authority] Decrypting ${encryptedPayload.files.length} file(s)...`);
+      try {
+        decryptedFiles = encryptedPayload.files.map((encryptedFile) => {
+          return decryptFile(encryptedFile, authorityKey);
+        });
+        console.log('[Authority] Files decrypted successfully');
+      } catch (fileError) {
+        console.error('[Authority] File decryption error:', fileError);
+        // Continue even if file decryption fails
+      }
+    }
+    
     // Run web search for context
     console.log('[Authority] Searching web for context...');
     const searchQuery = generateSearchQuery(decrypted);
@@ -93,6 +108,7 @@ router.post('/decrypt/:id', async (req, res) => {
     
     res.json({
       decrypted,
+      files: decryptedFiles,
       aiAnalysis,
       webContext: webContext.success ? {
         sources: webContext.sources,
