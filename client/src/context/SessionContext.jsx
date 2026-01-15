@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { createSession as apiCreateSession } from '../lib/api';
 
 const SessionContext = createContext(null);
@@ -65,7 +65,8 @@ export function SessionProvider({ children }) {
   };
 
   // Save session from backend validation (used when clicking Twilio link)
-  const saveSession = (sessionId, walletAddress, expiresAt = null) => {
+  // Memoized with useCallback to prevent infinite loops in components that depend on it
+  const saveSession = useCallback((sessionId, walletAddress, expiresAt = null) => {
     const newSession = {
       sessionId,
       walletAddress,
@@ -77,7 +78,7 @@ export function SessionProvider({ children }) {
       localStorage.setItem('walletAddress', walletAddress);
     }
     return newSession;
-  };
+  }, []); // Empty deps - function doesn't depend on any state
 
   // Clear session
   const clearSession = () => {

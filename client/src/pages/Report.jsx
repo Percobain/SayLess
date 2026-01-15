@@ -34,6 +34,11 @@ export default function Report() {
   // Check session validity on mount
   useEffect(() => {
     async function validateSession() {
+      // Guard: Don't re-check if already validated
+      if (status === 'valid' || status === 'invalid') {
+        return;
+      }
+
       if (!sessionId || sessionId === 'DEMO-SESSION') {
         // Allow demo/dev mode if needed, or enforce strictness
         setStatus('valid');
@@ -61,7 +66,8 @@ export default function Report() {
     }
 
     validateSession();
-  }, [sessionId, saveSession]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]); // Removed saveSession from deps - it's now memoized and stable
 
   const crimeCategories = [
     { id: 'theft', label: t('report.categories.theft'), icon: '🔓' },
@@ -88,7 +94,8 @@ export default function Report() {
     try {
       setStatus('encrypting');
       setError(null);
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Encrypt report and files (this is fast, no artificial delay needed)
       const encryptedReport = encryptWithNaCl(text);
       const encryptedFiles = await Promise.all(files.map(f => encryptFile(f)));
       const payload = {
@@ -98,9 +105,11 @@ export default function Report() {
         files: encryptedFiles,
         timestamp: Date.now()
       };
+      
+      // Submit to backend (this will show loading state naturally)
       setStatus('submitting');
-      await new Promise(resolve => setTimeout(resolve, 2000));
       const data = await submitReport(sessionId, payload);
+      
       if (data.success) {
         setResult(data);
         setStatus('done');
@@ -220,18 +229,29 @@ export default function Report() {
 
             <NeoCard variant="navy" className="p-4 text-left space-y-3 mb-6">
               <div>
-                <p className="text-xs uppercase font-bold text-neo-orange">{t('report.ipfsCid')}</p>
-                <p className="text-sm font-mono text-neo-cream break-all">{result?.cid || 'QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco'}</p>
+                <p className="text-xs uppercase font-bold text-neo-orange mb-1">{t('report.ipfsCid')}</p>
+                <p className="text-sm font-mono text-neo-cream break-all mb-2">{result?.cid || 'N/A'}</p>
+                {result?.cid && (
+                  <a
+                    href={`https://gateway.pinata.cloud/ipfs/${result.cid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-neo-orange hover:underline flex items-center gap-1"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Verify on IPFS (Pinata Gateway)
+                  </a>
+                )}
               </div>
               <div className="neo-divider bg-neo-teal/30"></div>
               <div>
-                <p className="text-xs uppercase font-bold text-neo-orange">{t('report.transactionHash')}</p>
-                <p className="text-sm font-mono text-neo-cream break-all">{result?.txHash || '0x8a7d3b9c...e2f1a4b5'}</p>
+                <p className="text-xs uppercase font-bold text-neo-orange mb-1">{t('report.transactionHash')}</p>
+                <p className="text-sm font-mono text-neo-cream break-all">{result?.txHash || 'N/A'}</p>
               </div>
               <div className="neo-divider bg-neo-teal/30"></div>
               <div>
-                <p className="text-xs uppercase font-bold text-neo-orange">{t('report.reportId')}</p>
-                <p className="text-sm font-mono text-neo-cream">{result?.reportId || 'RPT-' + Math.random().toString(36).substring(2, 8).toUpperCase()}</p>
+                <p className="text-xs uppercase font-bold text-neo-orange mb-1">{t('report.reportId')}</p>
+                <p className="text-sm font-mono text-neo-cream">{result?.reportId || 'N/A'}</p>
               </div>
             </NeoCard>
 
