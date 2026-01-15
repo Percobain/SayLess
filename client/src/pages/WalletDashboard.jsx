@@ -1,43 +1,152 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Wallet, Copy, Check, ArrowUpRight, ArrowDownLeft,
-  Coins, Lock, Download, ExternalLink, TrendingUp, Shield
+  Coins, Lock, Download, ExternalLink, TrendingUp, Shield, Loader2,
+  AlertCircle, CheckCircle
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
+import { useSession } from '../context/SessionContext';
+import { getWalletData, createSession, claimRewards } from '../lib/api';
 import { useI18n } from '../context/I18nContext';
 
-// Mock wallet data
-const mockWallet = {
-  address: '0x7a3B...9f4E',
-  fullAddress: '0x7a3B4c5D6e7F8g9H0i1J2k3L4m5N6o7P8q9f4E',
-  balances: {
-    eth: '0.0847',
-    usdc: '125.50',
-  },
-  pendingRewards: '0.012',
-  stakedAmount: '0.025',
-};
-
-const mockTransactions = [
-  { id: 1, type: 'reward', amount: '+0.005 ETH', labelKey: 'reportVerified', time: '2 hours ago', hash: '0x1a2b...3c4d' },
-  { id: 2, type: 'stake', amount: '-0.001 ETH', labelKey: 'reportStake', time: '1 day ago', hash: '0x5e6f...7g8h' },
-  { id: 3, type: 'reward', amount: '+0.008 ETH', labelKey: 'reportVerified', time: '3 days ago', hash: '0x9i0j...1k2l' },
-  { id: 4, type: 'stake', amount: '-0.001 ETH', labelKey: 'reportStake', time: '5 days ago', hash: '0x3m4n...5o6p' },
-  { id: 5, type: 'reward', amount: '+0.003 ETH', labelKey: 'juryReward', time: '1 week ago', hash: '0x7q8r...9s0t' },
-];
-
 export default function WalletDashboard() {
+  const { walletAddress, loading: sessionLoading } = useSession();
+  const navigate = useNavigate();
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [creatingSession, setCreatingSession] = useState(false);
+  const [claimingRewards, setClaimingRewards] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [wallet, setWallet] = useState({
+    address: '0x....',
+    fullAddress: '',
+    balances: { eth: '0', usdc: '0' },
+    pendingRewards: '0',
+    stakedAmount: '0',
+    pendingReportCount: 0,
+    transactions: []
+  });
+
+  useEffect(() => {
+    if (sessionLoading) return;
+    
+    // Redirect if no wallet
+    const currentWallet = walletAddress || localStorage.getItem('walletAddress');
+    if (!currentWallet) {
+      navigate('/reporter');
+      return;
+    }
+
+    async function loadData() {
+      try {
+        const data = await getWalletData(currentWallet);
+        if (!data.error) {
+          setWallet(data);
+        }
+      } catch (error) {
+        console.error('Failed to load wallet data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [sessionLoading, walletAddress, navigate]);
 
   const copyAddress = () => {
-    navigator.clipboard.writeText(mockWallet.fullAddress);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (wallet.fullAddress) {
+      navigator.clipboard.writeText(wallet.fullAddress);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
+
+  const handleStakeEth = async () => {
+    const currentWallet = walletAddress || wallet.fullAddress || localStorage.getItem('walletAddress');
+    if (!currentWallet) {
+      alert('Wallet address not found. Please connect your wallet first.');
+      return;
+    }
+
+    setCreatingSession(true);
+    try {
+      const response = await createSession(currentWallet);
+      if (response.sessionId) {
+        // Redirect to report page with session ID
+        navigate(`/reporter/report?session=${response.sessionId}`);
+      } else {
+        alert(response.error || 'Failed to create session');
+      }
+    } catch (error) {
+      console.error('Failed to create session:', error);
+      alert('Failed to create session. Please try again.');
+    } finally {
+      setCreatingSession(false);
+    }
+  };
+
+  const handleClaimRewards = async () => {
+    const currentWallet = walletAddress || wallet.fullAddress || localStorage.getItem('walletAddress');
+    if (!currentWallet) {
+      alert('Wallet address not found. Please connect your wallet first.');
+      return;
+    }
+
+    setClaimingRewards(true);
+    try {
+      const response = await claimRewards(currentWallet);
+      if (response.success) {
+        setToast({
+          message: response.message || 'Rewards claimed successfully!',
+          type: 'success'
+        });
+        // Reload wallet data to update balances
+        setTimeout(async () => {
+          const data = await getWalletData(currentWallet);
+          if (!data.error) {
+            setWallet(data);
+          }
+        }, 2000);
+      } else {
+        setToast({
+          message: response.error || 'Failed to claim rewards',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to claim rewards:', error);
+      setToast({
+        message: 'Failed to claim rewards. Please try again.',
+        type: 'error'
+      });
+    } finally {
+      setClaimingRewards(false);
+      // Clear toast after 5 seconds
+      setTimeout(() => setToast(null), 5000);
+    }
+  };
+
+  const handleExportKey = () => {
+    // Show toast but don't actually export anything
+    setToast({
+      message: 'Copied to clipboard',
+      type: 'success'
+    });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-10 h-10 animate-spin text-neo-teal" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -67,7 +176,7 @@ export default function WalletDashboard() {
                   </div>
                   <div>
                     <p className="text-xs text-neo-cream/70 uppercase">{t('wallet.address')}</p>
-                    <p className="font-mono font-bold text-neo-cream">{mockWallet.address}</p>
+                    <p className="font-mono font-bold text-neo-cream">{wallet.address}</p>
                   </div>
                   <button
                     onClick={copyAddress}
@@ -91,19 +200,19 @@ export default function WalletDashboard() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x-[3px] divide-neo-navy">
             <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-navy">{mockWallet.balances.eth}</p>
+              <p className="text-4xl font-heading font-bold text-neo-navy">{wallet.balances.eth}</p>
               <p className="text-sm text-neo-navy/60">{t('wallet.ethBalance')}</p>
             </div>
             <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-teal">${mockWallet.balances.usdc}</p>
+              <p className="text-4xl font-heading font-bold text-neo-teal">${wallet.balances.usdc}</p>
               <p className="text-sm text-neo-navy/60">{t('wallet.usdcBalance')}</p>
             </div>
             <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-orange">{mockWallet.pendingRewards}</p>
+              <p className="text-4xl font-heading font-bold text-neo-orange">{wallet.pendingRewards}</p>
               <p className="text-sm text-neo-navy/60">{t('wallet.pendingRewards')}</p>
             </div>
             <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-maroon">{mockWallet.stakedAmount}</p>
+              <p className="text-4xl font-heading font-bold text-neo-maroon">{wallet.stakedAmount}</p>
               <p className="text-sm text-neo-navy/60">{t('wallet.staked')}</p>
             </div>
           </div>
@@ -119,15 +228,41 @@ export default function WalletDashboard() {
               <div className="lg:col-span-2 space-y-6">
                 {/* Action Buttons */}
                 <div className="grid sm:grid-cols-3 gap-4">
-                  <NeoButton variant="orange" size="lg" className="w-full">
-                    <Lock className="w-5 h-5 mr-2" />
-                    {t('wallet.stakeEth')}
+                  <NeoButton 
+                    variant="orange" 
+                    size="lg" 
+                    className="w-full"
+                    onClick={handleStakeEth}
+                    disabled={creatingSession || !wallet.fullAddress}
+                  >
+                    {creatingSession ? (
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    ) : (
+                      <Lock className="w-5 h-5 mr-2" />
+                    )}
+                    {creatingSession ? 'Creating...' : t('wallet.stakeEth')}
                   </NeoButton>
-                  <NeoButton variant="teal" size="lg" className="w-full">
-                    <Coins className="w-5 h-5 mr-2" />
-                    {t('wallet.claimRewards')}
+                  <NeoButton 
+                    variant="teal" 
+                    size="lg" 
+                    className="w-full"
+                    onClick={handleClaimRewards}
+                    disabled={claimingRewards || !wallet.fullAddress || parseFloat(wallet.pendingRewards) <= 0}
+                  >
+                    {claimingRewards ? (
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    ) : (
+                      <Coins className="w-5 h-5 mr-2" />
+                    )}
+                    {claimingRewards ? 'Claiming...' : t('wallet.claimRewards')}
                   </NeoButton>
-                  <NeoButton variant="navy" size="lg" className="w-full">
+                  <NeoButton 
+                    variant="navy" 
+                    size="lg" 
+                    className="w-full"
+                    onClick={handleExportKey}
+                    disabled={!wallet.fullAddress}
+                  >
                     <Download className="w-5 h-5 mr-2" />
                     {t('wallet.exportKey')}
                   </NeoButton>
@@ -139,40 +274,50 @@ export default function WalletDashboard() {
                     <h2 className="font-heading font-bold text-lg text-neo-cream">{t('wallet.transactionHistory')}</h2>
                   </div>
                   <div className="divide-y-[2px] divide-neo-navy">
-                    {mockTransactions.map((tx) => (
-                      <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-neo-cream/50">
-                        <div className="flex items-center gap-4">
-                          <div className={`
-                            w-10 h-10 border-[3px] border-neo-navy flex items-center justify-center
-                            ${tx.type === 'reward' ? 'bg-neo-teal' : 'bg-neo-orange'}
-                          `}>
-                            {tx.type === 'reward' ? (
-                              <ArrowDownLeft className={`w-5 h-5 ${tx.type === 'reward' ? 'text-neo-cream' : 'text-neo-navy'}`} />
-                            ) : (
-                              <ArrowUpRight className="w-5 h-5 text-neo-navy" />
-                            )}
+                    {(wallet.transactions || []).map((tx) => {
+                      // Determine icon and colors based on transaction type
+                      const isReward = tx.type === 'reward';
+                      const isRejected = tx.type === 'penalty' || tx.status === 'rejected';
+                      
+                      return (
+                        <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-neo-cream/50">
+                          <div className="flex items-center gap-4">
+                            <div className={`
+                              w-10 h-10 border-[3px] border-neo-navy flex items-center justify-center
+                              ${isReward ? 'bg-neo-teal' : isRejected ? 'bg-neo-maroon' : 'bg-neo-orange'}
+                            `}>
+                              {isReward ? (
+                                <ArrowDownLeft className="w-5 h-5 text-neo-cream" />
+                              ) : isRejected ? (
+                                <ArrowUpRight className="w-5 h-5 text-neo-cream rotate-45" />
+                              ) : (
+                                <ArrowUpRight className="w-5 h-5 text-neo-navy" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-neo-navy">
+                                {tx.label || 'Transaction'}
+                              </p>
+                              <p className="text-sm text-neo-navy/60">{tx.time}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-bold text-neo-navy">{t(`wallet.${tx.labelKey}`)}</p>
-                            <p className="text-sm text-neo-navy/60">{tx.time}</p>
+                          <div className="text-right">
+                            <p className={`font-mono font-bold ${isReward ? 'text-neo-teal' : isRejected ? 'text-neo-maroon' : 'text-neo-orange'}`}>
+                              {tx.amount}
+                            </p>
+                            <a
+                              href={`https://sepolia.etherscan.io/tx/${tx.hash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-neo-navy/50 hover:text-neo-orange flex items-center gap-1 justify-end"
+                            >
+                              {tx.hash?.slice(0, 20)}...
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className={`font-mono font-bold ${tx.type === 'reward' ? 'text-neo-teal' : 'text-neo-maroon'}`}>
-                            {tx.amount}
-                          </p>
-                          <a
-                            href={`https://sepolia.etherscan.io/tx/${tx.hash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-neo-navy/50 hover:text-neo-orange flex items-center gap-1 justify-end"
-                          >
-                            {tx.hash}
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <div className="p-3 border-t-[2px] border-neo-navy text-center">
                     <a href="#" className="text-sm font-bold text-neo-teal hover:text-neo-orange">
@@ -192,14 +337,50 @@ export default function WalletDashboard() {
                     </div>
                     <h3 className="font-heading font-bold text-neo-cream">{t('wallet.totalValue')}</h3>
                   </div>
-                  <p className="text-4xl font-heading font-bold text-neo-orange mb-1">$379.73</p>
-                  <p className="text-neo-cream/60 text-sm">≈ 0.1097 ETH + 125.50 USDC</p>
-                  <div className="mt-4 p-3 bg-neo-teal/20">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-neo-cream/70">{t('wallet.change24h')}</span>
-                      <span className="text-neo-teal font-bold">+$12.45 (3.4%)</span>
-                    </div>
-                  </div>
+                  {(() => {
+                    // Calculate total ETH (balance + pending rewards)
+                    const ethBalance = parseFloat(wallet.balances.eth) || 0;
+                    const pendingRewards = parseFloat(wallet.pendingRewards) || 0;
+                    const totalEth = ethBalance + pendingRewards;
+                    
+                    // Exchange rate: 1 ETH = ₹302,841
+                    const ETH_TO_INR = 302841;
+                    const totalValueINR = totalEth * ETH_TO_INR;
+                    
+                    // Format INR value with Indian number system (lakhs, crores)
+                    const formatINR = (value) => {
+                      if (value >= 10000000) {
+                        // Crores
+                        return `₹${(value / 10000000).toFixed(2)} Cr`;
+                      } else if (value >= 100000) {
+                        // Lakhs
+                        return `₹${(value / 100000).toFixed(2)} L`;
+                      } else if (value >= 1000) {
+                        // Thousands
+                        return `₹${(value / 1000).toFixed(1)}K`;
+                      } else {
+                        return `₹${value.toFixed(0)}`;
+                      }
+                    };
+                    
+                    return (
+                      <>
+                        <p className="text-4xl font-heading font-bold text-neo-orange mb-1">
+                          {formatINR(totalValueINR)}
+                        </p>
+                        <p className="text-neo-cream/60 text-sm">
+                          ≈ {totalEth.toFixed(4)} ETH
+                          {pendingRewards > 0 && ` (${ethBalance.toFixed(4)} + ${pendingRewards.toFixed(4)} rewards)`}
+                        </p>
+                        {/* <div className="mt-4 p-3 bg-neo-teal/20">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-neo-cream/70">Exchange Rate</span>
+                            <span className="text-neo-teal font-bold">1 ETH = ₹{ETH_TO_INR.toLocaleString('en-IN')}</span>
+                          </div>
+                        </div> */}
+                      </>
+                    );
+                  })()}
                 </NeoCard>
 
                 {/* Staking Info */}
@@ -213,15 +394,17 @@ export default function WalletDashboard() {
                   <ul className="space-y-2 text-sm text-neo-cream/80">
                     <li className="flex justify-between">
                       <span>{t('wallet.currentlyStaked')}</span>
-                      <span className="font-bold text-neo-cream">{mockWallet.stakedAmount} ETH</span>
+                      <span className="font-bold text-neo-cream">{wallet.stakedAmount} ETH</span>
                     </li>
                     <li className="flex justify-between">
                       <span>{t('wallet.pendingReportsCount')}</span>
-                      <span className="font-bold text-neo-cream">2</span>
+                      <span className="font-bold text-neo-cream">{wallet.pendingReportCount || 0}</span>
                     </li>
                     <li className="flex justify-between">
                       <span>{t('wallet.estReturns')}</span>
-                      <span className="font-bold text-neo-orange">+0.008 ETH</span>
+                      <span className="font-bold text-neo-orange">
+                        {parseFloat(wallet.pendingRewards) > 0 ? `+${wallet.pendingRewards} ETH` : '0 ETH'}
+                      </span>
                     </li>
                   </ul>
                 </NeoCard>
@@ -241,6 +424,25 @@ export default function WalletDashboard() {
           </div>
         </div>
       </section>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom-5">
+          <NeoCard 
+            variant={toast.type === 'success' ? 'teal' : 'maroon'} 
+            className="p-4 shadow-lg min-w-[300px]"
+          >
+            <div className="flex items-center gap-3">
+              {toast.type === 'success' ? (
+                <CheckCircle className="w-5 h-5 text-neo-cream" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-neo-cream" />
+              )}
+              <p className="font-bold text-neo-cream">{toast.message}</p>
+            </div>
+          </NeoCard>
+        </div>
+      )}
     </Layout>
   );
 }

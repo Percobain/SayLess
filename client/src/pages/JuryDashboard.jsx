@@ -1,79 +1,127 @@
-import { useState } from 'react';
-import { Scale, ThumbsUp, ThumbsDown, Clock, Users, Award, AlertTriangle, Gavel, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Scale, ThumbsUp, ThumbsDown, Clock, Users, Award, AlertTriangle, Gavel, CheckCircle, Loader2 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
 import { useI18n } from '../context/I18nContext';
-
-// Mock disputed reports
-const mockDisputes = [
-  {
-    id: 'DSP-001',
-    reportId: 'RPT-A7B3C9',
-    category: 'Fraud',
-    severity: 8,
-    status: 'active',
-    timeLeft: '2h 34m',
-    votesValid: 45,
-    votesInvalid: 23,
-    totalVoters: 100,
-    reporterRep: 72,
-    description: 'Alleged cryptocurrency scam involving fake investment platform...',
-    authorityReason: 'Insufficient evidence provided',
-    reporterAppeal: 'I have additional screenshots and transaction records as proof.',
-  },
-  {
-    id: 'DSP-002',
-    reportId: 'RPT-F2E8D1',
-    category: 'Harassment',
-    severity: 6,
-    status: 'active',
-    timeLeft: '5h 12m',
-    votesValid: 32,
-    votesInvalid: 41,
-    totalVoters: 80,
-    reporterRep: 45,
-    description: 'Workplace harassment complaint against supervisor...',
-    authorityReason: 'Report appears to be a personal dispute',
-    reporterAppeal: 'Multiple witnesses can corroborate my account.',
-  },
-  {
-    id: 'DSP-003',
-    reportId: 'RPT-K4L9M2',
-    category: 'Theft',
-    severity: 7,
-    status: 'ended',
-    timeLeft: 'Ended',
-    votesValid: 67,
-    votesInvalid: 33,
-    totalVoters: 100,
-    reporterRep: 89,
-    verdict: 'valid',
-    description: 'Vehicle theft from private parking...',
-    authorityReason: 'Location details unclear',
-    reporterAppeal: 'CCTV footage available from nearby store.',
-  },
-];
+import { getJuryReports, submitJuryVote, getJuryStats, getUserJuryVotes, getReputationData } from '../lib/api';
 
 export default function JuryDashboard() {
   const { t } = useI18n();
   const [selectedDispute, setSelectedDispute] = useState(null);
-  const [userVote, setUserVote] = useState(null);
   const [hasVoted, setHasVoted] = useState({});
+  const [cases, setCases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [votingInProgress, setVotingInProgress] = useState({});
+  
+  // User stats
+  const [userRep, setUserRep] = useState(50);
+  const [voteWeight, setVoteWeight] = useState(5);
+  const [casesJudged, setCasesJudged] = useState(0);
+  const [successRate, setSuccessRate] = useState(0);
+  
+  // TODO: Get wallet from auth context - for now using a placeholder
+  const walletAddress = localStorage.getItem('walletAddress') || '';
 
-  const handleVote = (disputeId, vote) => {
-    setUserVote(vote);
-    setHasVoted(prev => ({ ...prev, [disputeId]: vote }));
-    setTimeout(() => {
-      setSelectedDispute(null);
-    }, 1500);
+  useEffect(() => {
+    fetchCases();
+    if (walletAddress) {
+      fetchUserStats();
+      fetchUserVotes();
+    }
+  }, [walletAddress]);
+
+  const fetchCases = async () => {
+    try {
+      setLoading(true);
+      const reports = await getJuryReports();
+      
+      // Transform API reports to display format
+      const transformedCases = reports.map((report, index) => ({
+        id: `CASE-${String(index + 1).padStart(3, '0')}`,
+        reportId: report.sessionId,
+        category: report.aiAnalysis?.category || 'Pending Analysis',
+        severity: report.aiAnalysis?.urgencyScore || 5,
+        status: 'active',
+        timeLeft: 'Active',
+        votesValid: report.votes?.validPercent || 0,
+        votesInvalid: report.votes?.invalidPercent || 0,
+        totalVoters: report.votes?.totalVoters || 0,
+        reporterRep: report.reporterReputation || 50,
+        description: report.aiAnalysis?.reasoning || 'Report pending analysis by authorities.',
+        authorityReason: 'Under review by community jury',
+        reporterAppeal: 'Awaiting community verdict.',
+        dbId: report._id,
+        cid: report.cid,
+        txHash: report.txHash,
+        reporterWallet: report.reporterWallet,
+        createdAt: report.createdAt
+      }));
+      
+      setCases(transformedCases);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch jury cases:', err);
+      setError('Failed to load cases');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Mock user reputation
-  const userRep = 65;
-  const voteWeight = Math.floor(userRep / 10);
-  const casesJudged = 12;
-  const successRate = 87;
+  const fetchUserStats = async () => {
+    try {
+      // Fetch both jury stats and full reputation data
+      const [stats, repData] = await Promise.all([
+        getJuryStats(walletAddress),
+        getReputationData(walletAddress)
+      ]);
+      
+      // Use jury reputation for jury-related stats
+      setUserRep(repData.juryReputation || stats.reputation || 50);
+      setVoteWeight(repData.voteWeight || stats.voteWeight || 5);
+      setCasesJudged(repData.juryVotes || stats.casesJudged || 0);
+      setSuccessRate(stats.successRate || 0);
+    } catch (err) {
+      console.error('Failed to fetch user stats:', err);
+    }
+  };
+
+  const fetchUserVotes = async () => {
+    try {
+      const votes = await getUserJuryVotes(walletAddress);
+      setHasVoted(votes);
+    } catch (err) {
+      console.error('Failed to fetch user votes:', err);
+    }
+  };
+
+  const handleVote = async (dbId, vote) => {
+    if (!walletAddress) {
+      alert('Please connect your wallet to vote');
+      return;
+    }
+    
+    setVotingInProgress(prev => ({ ...prev, [dbId]: true }));
+    
+    try {
+      const result = await submitJuryVote(dbId, vote, walletAddress);
+      
+      if (result.success) {
+        setHasVoted(prev => ({ ...prev, [dbId]: vote }));
+        // Refresh cases to get updated vote counts
+        fetchCases();
+        fetchUserStats();
+      } else {
+        alert(result.error || 'Failed to submit vote');
+      }
+    } catch (err) {
+      console.error('Vote submission failed:', err);
+      alert('Failed to submit vote');
+    } finally {
+      setVotingInProgress(prev => ({ ...prev, [dbId]: false }));
+    }
+  };
 
   return (
     <Layout>
@@ -130,13 +178,41 @@ export default function JuryDashboard() {
             {/* Filter Tabs */}
             <div className="flex items-center gap-4 mb-8">
               <NeoButton variant="navy" size="sm">{t('jury.allDisputes')}</NeoButton>
-              <NeoButton variant="default" size="sm">{t('jury.active')} ({mockDisputes.filter(d => d.status === 'active').length})</NeoButton>
+              <NeoButton variant="default" size="sm">{t('jury.active')} ({cases.filter(d => d.status === 'active').length})</NeoButton>
               <NeoButton variant="default" size="sm">{t('jury.ended')}</NeoButton>
             </div>
 
+            {/* Loading State */}
+            {loading && (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-neo-navy" />
+                <span className="ml-3 text-neo-navy font-semibold">Loading cases...</span>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && !loading && (
+              <NeoCard variant="maroon" className="p-6 text-center">
+                <p className="text-neo-cream font-semibold">{error}</p>
+                <NeoButton variant="orange" size="sm" className="mt-4" onClick={fetchCases}>
+                  Try Again
+                </NeoButton>
+              </NeoCard>
+            )}
+
+            {/* Empty State */}
+            {!loading && !error && cases.length === 0 && (
+              <NeoCard className="p-8 text-center">
+                <Scale className="w-12 h-12 mx-auto text-neo-navy/40 mb-4" />
+                <h3 className="font-heading font-bold text-xl text-neo-navy mb-2">No Cases Under Review</h3>
+                <p className="text-neo-navy/60">There are currently no cases awaiting community jury review.</p>
+              </NeoCard>
+            )}
+
             {/* Disputes List */}
+            {!loading && !error && cases.length > 0 && (
             <div className="space-y-6">
-              {mockDisputes.map((dispute) => (
+              {cases.map((dispute) => (
                 <NeoCard
                   key={dispute.id}
                   className={`overflow-hidden ${dispute.status === 'ended' ? 'opacity-80' : ''}`}
@@ -246,21 +322,26 @@ export default function JuryDashboard() {
                           </p>
                         </div>
                       </NeoCard>
-                    ) : hasVoted[dispute.id] ? (
+                    ) : hasVoted[dispute.dbId] ? (
                       <NeoCard variant="teal" className="p-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Award className="w-5 h-5 text-neo-cream" />
                           <p className="font-heading font-bold text-neo-cream">
-                            {t('jury.youVoted')} {hasVoted[dispute.id] === 'valid' ? t('jury.valid') : t('jury.invalid')}
+                            {t('jury.youVoted')} {hasVoted[dispute.dbId] === 'valid' ? t('jury.valid') : t('jury.invalid')}
                           </p>
                         </div>
                       </NeoCard>
+                    ) : votingInProgress[dispute.dbId] ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="w-6 h-6 animate-spin text-neo-navy" />
+                        <span className="ml-2 font-semibold text-neo-navy">Submitting vote...</span>
+                      </div>
                     ) : (
                       <div className="flex gap-4">
                         <NeoButton
                           variant="teal"
                           className="flex-1"
-                          onClick={() => handleVote(dispute.id, 'valid')}
+                          onClick={() => handleVote(dispute.dbId, 'valid')}
                         >
                           <ThumbsUp className="w-5 h-5 mr-2" />
                           {t('jury.voteValid')}
@@ -268,7 +349,7 @@ export default function JuryDashboard() {
                         <NeoButton
                           variant="maroon"
                           className="flex-1"
-                          onClick={() => handleVote(dispute.id, 'invalid')}
+                          onClick={() => handleVote(dispute.dbId, 'invalid')}
                         >
                           <ThumbsDown className="w-5 h-5 mr-2" />
                           {t('jury.voteInvalid')}
@@ -279,6 +360,7 @@ export default function JuryDashboard() {
                 </NeoCard>
               ))}
             </div>
+            )}
 
             {/* Info Banner */}
             <NeoCard variant="navy" className="p-6 mt-8">

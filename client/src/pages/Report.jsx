@@ -1,35 +1,45 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import {
   Shield, Lock, Upload, CheckCircle, AlertCircle,
-  ExternalLink, ArrowLeft, FileText, AlertTriangle, Zap
+  ExternalLink, ArrowLeft, FileText, AlertTriangle, Zap, X
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
+import { useSession } from '../context/SessionContext';
 import { encryptWithNaCl, encryptFile } from '../lib/encryption';
 import { checkSession, submitReport } from '../lib/api';
 import { useI18n } from '../context/I18nContext';
 
 export default function Report() {
   const { t } = useI18n();
+  const { sessionId: storedSessionId, walletAddress: storedWallet, saveSession } = useSession();
   const { sessionId: paramSessionId } = useParams();
   const [searchParams] = useSearchParams();
-  const sessionId = paramSessionId || searchParams.get('session');
+  
+  // Priority: URL param > query param > stored session
+  const sessionId = paramSessionId || searchParams.get('session') || storedSessionId;
 
   const [category, setCategory] = useState('');
   const [severity, setSeverity] = useState(5);
   const [text, setText] = useState('');
   const [files, setFiles] = useState([]);
   const [status, setStatus] = useState('loading'); // loading, valid, encrypting, submitting, done, error
-  const [walletAddress, setWalletAddress] = useState(null);
+  const [walletAddress, setWalletAddress] = useState(storedWallet);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [showWarning, setShowWarning] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Check session validity on mount
   useEffect(() => {
     async function validateSession() {
+      // Guard: Don't re-check if already validated
+      if (status === 'valid' || status === 'invalid') {
+        return;
+      }
+
       if (!sessionId || sessionId === 'DEMO-SESSION') {
         // Allow demo/dev mode if needed, or enforce strictness
         setStatus('valid');
@@ -42,6 +52,8 @@ export default function Report() {
           setStatus('valid');
           if (data.wallet) {
             setWalletAddress(data.wallet);
+            // Save session to context so wallet is available across all pages
+            saveSession(sessionId, data.wallet, data.expiresAt);
           }
         } else {
           setStatus('invalid');
@@ -55,7 +67,8 @@ export default function Report() {
     }
 
     validateSession();
-  }, [sessionId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]); // Removed saveSession from deps - it's now memoized and stable
 
   const crimeCategories = [
     { id: 'theft', label: t('report.categories.theft'), icon: '🔓' },
@@ -67,6 +80,32 @@ export default function Report() {
     { id: 'cybercrime', label: t('report.categories.cybercrime'), icon: '💻' },
     { id: 'other', label: t('report.categories.other'), icon: '📋' },
   ];
+
+  // Handle file selection with validation
+  const handleFileSelection = (newFiles) => {
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    const validFiles = [];
+    const errors = [];
+
+    newFiles.forEach((file) => {
+      if (file.size > MAX_SIZE) {
+        errors.push(`${file.name} exceeds 10MB limit`);
+      } else {
+        validFiles.push(file);
+      }
+    });
+
+    if (errors.length > 0) {
+      setError(errors.join(', '));
+    }
+
+    if (validFiles.length > 0) {
+      setFiles((prev) => [...prev, ...validFiles]);
+      if (errors.length === 0) {
+        setError(null);
+      }
+    }
+  };
 
   const handleSubmit = async () => {
     if (!text.trim() || !category) {
@@ -82,7 +121,8 @@ export default function Report() {
     try {
       setStatus('encrypting');
       setError(null);
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Encrypt report and files (this is fast, no artificial delay needed)
       const encryptedReport = encryptWithNaCl(text);
       const encryptedFiles = await Promise.all(files.map(f => encryptFile(f)));
       const payload = {
@@ -92,9 +132,11 @@ export default function Report() {
         files: encryptedFiles,
         timestamp: Date.now()
       };
+      
+      // Submit to backend (this will show loading state naturally)
       setStatus('submitting');
-      await new Promise(resolve => setTimeout(resolve, 2000));
       const data = await submitReport(sessionId, payload);
+      
       if (data.success) {
         setResult(data);
         setStatus('done');
@@ -214,18 +256,29 @@ export default function Report() {
 
             <NeoCard variant="navy" className="p-4 text-left space-y-3 mb-6">
               <div>
-                <p className="text-xs uppercase font-bold text-neo-orange">{t('report.ipfsCid')}</p>
-                <p className="text-sm font-mono text-neo-cream break-all">{result?.cid || 'QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco'}</p>
+                <p className="text-xs uppercase font-bold text-neo-orange mb-1">{t('report.ipfsCid')}</p>
+                <p className="text-sm font-mono text-neo-cream break-all mb-2">{result?.cid || 'N/A'}</p>
+                {result?.cid && (
+                  <a
+                    href={`https://gateway.pinata.cloud/ipfs/${result.cid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-neo-orange hover:underline flex items-center gap-1"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Verify on IPFS (Pinata Gateway)
+                  </a>
+                )}
               </div>
               <div className="neo-divider bg-neo-teal/30"></div>
               <div>
-                <p className="text-xs uppercase font-bold text-neo-orange">{t('report.transactionHash')}</p>
-                <p className="text-sm font-mono text-neo-cream break-all">{result?.txHash || '0x8a7d3b9c...e2f1a4b5'}</p>
+                <p className="text-xs uppercase font-bold text-neo-orange mb-1">{t('report.transactionHash')}</p>
+                <p className="text-sm font-mono text-neo-cream break-all">{result?.txHash || 'N/A'}</p>
               </div>
               <div className="neo-divider bg-neo-teal/30"></div>
               <div>
-                <p className="text-xs uppercase font-bold text-neo-orange">{t('report.reportId')}</p>
-                <p className="text-sm font-mono text-neo-cream">{result?.reportId || 'RPT-' + Math.random().toString(36).substring(2, 8).toUpperCase()}</p>
+                <p className="text-xs uppercase font-bold text-neo-orange mb-1">{t('report.reportId')}</p>
+                <p className="text-sm font-mono text-neo-cream">{result?.reportId || 'N/A'}</p>
               </div>
             </NeoCard>
 
@@ -373,23 +426,87 @@ export default function Report() {
                   <label className="block font-heading font-bold mb-3 text-neo-navy text-lg">
                     {t('report.evidence')} <span className="text-neo-navy/50 text-sm font-normal">{t('report.optional')}</span>
                   </label>
-                  <div className="border-[3px] border-dashed border-neo-navy p-8 text-center hover:bg-neo-teal/10 transition-colors cursor-pointer">
+                  <div
+                    className="border-[3px] border-dashed border-neo-navy p-8 text-center hover:bg-neo-teal/10 transition-colors cursor-pointer"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const droppedFiles = Array.from(e.dataTransfer.files);
+                      handleFileSelection(droppedFiles);
+                    }}
+                  >
                     <Upload className="w-12 h-12 text-neo-teal mx-auto mb-4" />
                     <input
+                      ref={fileInputRef}
                       type="file"
                       multiple
-                      onChange={(e) => setFiles([...e.target.files])}
+                      accept="image/*,video/*,.pdf,.doc,.docx,.txt"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          handleFileSelection(Array.from(e.target.files));
+                          // Reset input so same file can be selected again
+                          e.target.value = '';
+                        }
+                      }}
                       className="hidden"
                       id="file-upload"
+                      disabled={status === 'encrypting' || status === 'submitting'}
                     />
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      <NeoButton variant="teal" size="sm">{t('report.chooseFiles')}</NeoButton>
-                      <p className="text-sm text-neo-navy/60 mt-3">{t('report.filesNote')}</p>
-                    </label>
+                    <div 
+                      className="cursor-pointer" 
+                      onClick={() => {
+                        if (fileInputRef.current && status !== 'encrypting' && status !== 'submitting') {
+                          fileInputRef.current.click();
+                        }
+                      }}
+                    >
+                      <NeoButton 
+                        variant="teal" 
+                        size="sm" 
+                        type="button" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (fileInputRef.current && status !== 'encrypting' && status !== 'submitting') {
+                            fileInputRef.current.click();
+                          }
+                        }}
+                      >
+                        {t('report.chooseFiles')}
+                      </NeoButton>
+                      <p className="text-sm text-neo-navy/60 mt-3">Images, videos, documents • Max 10MB each</p>
+                    </div>
                     {files.length > 0 && (
-                      <NeoCard variant="orange" className="mt-4 p-3 inline-block">
-                        <span className="font-bold text-neo-navy">{files.length} {t('report.filesSelected')}</span>
-                      </NeoCard>
+                      <div className="mt-4 space-y-2">
+                        {files.map((file, index) => (
+                          <NeoCard key={index} variant="orange" className="p-3 flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-neo-navy truncate">{file.name}</p>
+                              <p className="text-xs text-neo-navy/70">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const newFiles = files.filter((_, i) => i !== index);
+                                setFiles(newFiles);
+                              }}
+                              className="ml-3 text-neo-maroon hover:text-neo-navy transition-colors"
+                              type="button"
+                              disabled={status === 'encrypting' || status === 'submitting'}
+                              title="Remove file"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </NeoCard>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>

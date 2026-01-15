@@ -5,9 +5,10 @@ import Layout from '../components/Layout';
 import NeoCard from '../components/NeoCard';
 import NeoButton from '../components/NeoButton';
 import { useI18n } from '../context/I18nContext';
-
+import { useSession } from '../context/SessionContext';
 export default function SilentReport() {
   const { t } = useI18n();
+
 
   // Morse-like patterns for categories
   const patterns = {
@@ -25,6 +26,7 @@ export default function SilentReport() {
     high: { code: '— — —', level: 7 - 10 },
   };
 
+  const { sessionId, walletAddress } = useSession();
   const [taps, setTaps] = useState([]);
   const [holding, setHolding] = useState(false);
   const [holdStart, setHoldStart] = useState(0);

@@ -13,6 +13,9 @@ import { initTavily } from './services/tavily.js';
 import webhookRoutes from './routes/webhook.js';
 import reportRoutes from './routes/report.js';
 import authorityRoutes from './routes/authority.js';
+import reporterRoutes from './routes/reporter.js';
+import juryRoutes from './routes/jury.js';
+import reputationRoutes from './routes/reputation.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +35,9 @@ app.use((req, res, next) => {
 app.use('/webhook', webhookRoutes);
 app.use('/api', reportRoutes);
 app.use('/api/authority', authorityRoutes);
+app.use('/api/reporter', reporterRoutes);
+app.use('/api/jury', juryRoutes);
+app.use('/api/reputation', reputationRoutes);
 
 // Health check
 app.get('/', (req, res) => {
