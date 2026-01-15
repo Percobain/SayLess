@@ -3,6 +3,7 @@ import { Shield, User, Scale, Wallet, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
+import faviconSvg from '../assets/favicon.svg';
 
 export default function Navbar() {
   const location = useLocation();
@@ -23,10 +24,12 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="neo-badge-orange">
-              <Shield className="w-5 h-5" />
-            </div>
-            <span className="font-heading text-2xl font-bold tracking-tight text-neo-navy">
+            <img
+              src={faviconSvg}
+              alt="SayLess Logo"
+              className="w-10 h-10 sm:w-12 sm:h-12"
+            />
+            <span className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-neo-navy">
               SAY<span className="text-neo-orange">LESS</span>
             </span>
           </Link>
