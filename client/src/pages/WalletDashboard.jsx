@@ -151,41 +151,41 @@ export default function WalletDashboard() {
   return (
     <Layout>
       {/* Hero Header */}
-      <section className="bg-neo-navy py-12 border-b-[4px] border-neo-navy">
+      <section className="bg-neo-navy py-6 sm:py-12 border-b-[4px] border-neo-navy">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex flex-col gap-4 sm:gap-6">
               <div>
-                <div className="neo-badge-orange mb-4">
-                  <Wallet className="w-4 h-4" />
+                <div className="neo-badge-orange mb-2 sm:mb-4 text-xs sm:text-sm">
+                  <Wallet className="w-3 h-3 sm:w-4 sm:h-4" />
                   {t('wallet.badge')}
                 </div>
-                <h1 className="text-4xl md:text-5xl font-heading font-bold text-neo-cream mb-2">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-heading font-bold text-neo-cream mb-1 sm:mb-2">
                   {t('wallet.title')}
                 </h1>
-                <p className="text-neo-cream/60">
+                <p className="text-sm sm:text-base text-neo-cream/60">
                   {t('wallet.subtitle')}
                 </p>
               </div>
 
               {/* Wallet Address Card */}
-              <NeoCard className="p-4 bg-neo-teal border-neo-teal">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-neo-orange flex items-center justify-center">
-                    <Wallet className="w-5 h-5 text-neo-navy" />
+              <NeoCard className="p-3 sm:p-4 bg-neo-teal border-neo-teal w-full sm:w-auto sm:self-start">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-neo-orange flex items-center justify-center flex-shrink-0">
+                    <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-neo-navy" />
                   </div>
-                  <div>
-                    <p className="text-xs text-neo-cream/70 uppercase">{t('wallet.address')}</p>
-                    <p className="font-mono font-bold text-neo-cream">{wallet.address}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] sm:text-xs text-neo-cream/70 uppercase">{t('wallet.address')}</p>
+                    <p className="font-mono font-bold text-neo-cream text-sm sm:text-base truncate">{wallet.address}</p>
                   </div>
                   <button
                     onClick={copyAddress}
-                    className="ml-2 p-2 hover:bg-neo-navy/20 transition-colors"
+                    className="p-2 hover:bg-neo-navy/20 transition-colors flex-shrink-0"
                   >
                     {copied ? (
-                      <Check className="w-5 h-5 text-neo-orange" />
+                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-neo-orange" />
                     ) : (
-                      <Copy className="w-5 h-5 text-neo-cream" />
+                      <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-neo-cream" />
                     )}
                   </button>
                 </div>
@@ -198,22 +198,22 @@ export default function WalletDashboard() {
       {/* Balance Cards */}
       <section className="bg-neo-cream border-b-[4px] border-neo-navy">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x-[3px] divide-neo-navy">
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-navy">{wallet.balances.eth}</p>
-              <p className="text-sm text-neo-navy/60">{t('wallet.ethBalance')}</p>
+          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4">
+            <div className="py-3 sm:py-6 text-center border-r-[2px] border-b-[2px] md:border-b-0 border-neo-navy">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-navy">{wallet.balances.eth}</p>
+              <p className="text-xs sm:text-sm text-neo-navy/60">{t('wallet.ethBalance')}</p>
             </div>
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-teal">${wallet.balances.usdc}</p>
-              <p className="text-sm text-neo-navy/60">{t('wallet.usdcBalance')}</p>
+            <div className="py-3 sm:py-6 text-center border-b-[2px] md:border-b-0 md:border-r-[2px] border-neo-navy">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-teal">${wallet.balances.usdc}</p>
+              <p className="text-xs sm:text-sm text-neo-navy/60">{t('wallet.usdcBalance')}</p>
             </div>
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-orange">{wallet.pendingRewards}</p>
-              <p className="text-sm text-neo-navy/60">{t('wallet.pendingRewards')}</p>
+            <div className="py-3 sm:py-6 text-center border-r-[2px] border-neo-navy">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-orange">{wallet.pendingRewards}</p>
+              <p className="text-xs sm:text-sm text-neo-navy/60">{t('wallet.pendingRewards')}</p>
             </div>
-            <div className="py-6 text-center">
-              <p className="text-4xl font-heading font-bold text-neo-maroon">{wallet.stakedAmount}</p>
-              <p className="text-sm text-neo-navy/60">{t('wallet.staked')}</p>
+            <div className="py-3 sm:py-6 text-center">
+              <p className="text-2xl sm:text-4xl font-heading font-bold text-neo-maroon">{wallet.stakedAmount}</p>
+              <p className="text-xs sm:text-sm text-neo-navy/60">{t('wallet.staked')}</p>
             </div>
           </div>
         </div>
