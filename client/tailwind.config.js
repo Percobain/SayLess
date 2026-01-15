@@ -46,6 +46,7 @@ export default {
       },
       boxShadow: {
         'neo': '4px 4px 0px 0px #001524',
+        'neo-sm': '2px 2px 0px 0px #001524',
         'neo-lg': '6px 6px 0px 0px #001524',
         'neo-xl': '8px 8px 0px 0px #001524',
         'neo-hover': '2px 2px 0px 0px #001524',

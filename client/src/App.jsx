@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { I18nProvider } from './context/I18nContext';
 import LanguageModal from './components/LanguageModal';
+import TranslationLoadingOverlay from './components/TranslationLoadingOverlay';
 import Landing from './pages/Landing';
 import ReporterHome from './pages/ReporterHome';
 import Report from './pages/Report';
@@ -15,6 +16,7 @@ function App() {
     <I18nProvider>
       <BrowserRouter>
         <LanguageModal />
+        <TranslationLoadingOverlay />
         <Routes>
           {/* Landing */}
           <Route path="/" element={<Landing />} />
